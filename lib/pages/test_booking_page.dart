@@ -92,7 +92,7 @@ class TestBookingPage extends StatelessWidget {
                                   restaurantId: restaurant.id,
                                   userId: userId,
                                   date: '2026-10-20', // ฟิกซ์วันที่ไว้เทส
-                                  timeSlot: '19:00', // ฟิกซ์เวลาไว้เทส
+                                  timeSlot: '12:00', // ฟิกซ์เวลาไว้เทส
                                   partySize: 2, // สมมติว่ามา 2 คน
                                 );
 

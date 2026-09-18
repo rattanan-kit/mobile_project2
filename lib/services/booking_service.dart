@@ -11,19 +11,46 @@ class BookingService {
     required int partySize,
   }) async {
     try {
-      // 1. ดึงข้อมูลร้านเพื่อดูว่ารอบนึงรับได้กี่คน (capacityPerSlot)
+      // --- ด่านที่ 1: (จำนวนคนผิดปกติ) ---
+      if (partySize <= 0) {
+        print('❌ จองไม่ได้! จำนวนคนต้องมากกว่า 0');
+        return false;
+      }
+
+      // --- ด่านที่ 2: (ป้องกันการจองย้อนหลัง) ---
+      // นำ date และ timeSlot มาต่อกันแล้วแปลงเป็นเวลาของเครื่อง
+      DateTime bookingDateTime = DateTime.parse('$date $timeSlot:00');
+      if (bookingDateTime.isBefore(DateTime.now())) {
+        print('❌ จองไม่ได้! ไม่สามารถจองเวลาในอดีตได้');
+        return false;
+      }
+
+      // --- ด่านที่ 3: (ป้องกัน User จองซ้ำเวลาเดิม) ---
+      QuerySnapshot userBookings = await _db
+          .collection('bookings')
+          .where('userId', isEqualTo: userId)
+          .where('date', isEqualTo: date)
+          .where('timeSlot', isEqualTo: timeSlot)
+          .where('status', isEqualTo: 'confirmed')
+          .get();
+
+      if (userBookings.docs.isNotEmpty) {
+        print('❌ จองไม่ได้! คุณมีคิวจองในเวลานี้ไปแล้ว');
+        return false;
+      }
+
+      // --- ด่านที่ 4: เช็กโควตาโต๊ะของร้าน  ---
       DocumentSnapshot restaurantDoc = await _db
           .collection('restaurants')
           .doc(restaurantId)
           .get();
       if (!restaurantDoc.exists) {
-        print('หาร้านไม่เจอ');
+        print('❌ หาร้านไม่เจอ');
         return false;
       }
       int maxCapacity = restaurantDoc['capacityPerSlot'] ?? 0;
 
-      // 2. ค้นหาประวัติการจองของร้านนี้ ในวันและเวลาที่ระบุ (เอาเฉพาะที่ confirmed)
-      QuerySnapshot bookingsSnapshot = await _db
+      QuerySnapshot restaurantBookings = await _db
           .collection('bookings')
           .where('restaurantId', isEqualTo: restaurantId)
           .where('date', isEqualTo: date)
@@ -31,20 +58,18 @@ class BookingService {
           .where('status', isEqualTo: 'confirmed')
           .get();
 
-      // 3. เอาจำนวนคน (partySize) ของทุกคิวในรอบนั้นมาบวกกัน
       int currentBookedSeats = 0;
-      for (var doc in bookingsSnapshot.docs) {
+      for (var doc in restaurantBookings.docs) {
         currentBookedSeats += (doc['partySize'] as num).toInt();
       }
 
-      // 4. เช็กว่าถ้าบวกคนที่กำลังจะกดจองเข้าไป มันเกินโควตาไหม
       if (currentBookedSeats + partySize > maxCapacity) {
         int seatsLeft = maxCapacity - currentBookedSeats;
         print('❌ จองไม่ได้! รอบนี้เต็มแล้ว (เหลือแค่ $seatsLeft ที่นั่ง)');
-        return false; // บล็อกการจองทันที
+        return false;
       }
 
-      // 5. ถ้าที่นั่งเหลือพอ ก็บันทึกลง Database ตามปกติ
+      // --- ผ่านหมด: บันทึกลง Database ---
       await _db.collection('bookings').add({
         'restaurantId': restaurantId,
         'userId': userId,
