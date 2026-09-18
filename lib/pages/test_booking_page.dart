@@ -7,7 +7,6 @@ import '../models/restaurant_model.dart';
 import '../services/booking_service.dart';
 import 'favorites_page.dart';
 
-// เปลี่ยนเป็น StatefulWidget เพื่อให้หน้าจอจดจำสถานะการกดปุ่ม Filter ได้
 class TestBookingPage extends StatefulWidget {
   const TestBookingPage({super.key});
 
@@ -39,7 +38,7 @@ class _TestBookingPageState extends State<TestBookingPage> {
       appBar: AppBar(
         title: const Text('Test Booking Flow'),
         actions: [
-          // ปุ่มข้อมูล Dummy )
+          // --- ปุ่มข้อมูล Dummy ---
           IconButton(
             icon: const Icon(Icons.add_box, color: Colors.greenAccent),
             tooltip: 'เพิ่มร้านจำลอง',
@@ -55,6 +54,7 @@ class _TestBookingPageState extends State<TestBookingPage> {
                   'description': 'ข้าวแกงรสเด็ด อร่อยคุ้มค่า ราคาประหยัด',
                   'capacityPerSlot': 20,
                   'imageUrl': [
+                    // ตรงกับ Database ที่คุณเซ็ตไว้
                     'https://images.unsplash.com/photo-1559314809-0d155014e29e',
                     '',
                   ],
@@ -227,7 +227,7 @@ class _TestBookingPageState extends State<TestBookingPage> {
                     return Card(
                       margin: const EdgeInsets.all(16),
                       child: ListTile(
-                        // แก้ไขการแสดงรูปภาพเป็นแบบดึงจาก Array ช่องแรก (Index 0)
+                        // ดึงรูปจากตัวแปร images (ที่แมพมาจาก imageUrl ใน Model แล้ว)
                         leading: restaurant.images.isNotEmpty
                             ? Image.network(
                                 restaurant.images[0],
@@ -240,11 +240,12 @@ class _TestBookingPageState extends State<TestBookingPage> {
                             : const Icon(Icons.restaurant, size: 40),
                         title: Text(restaurant.name),
                         subtitle: Text(
-                          'ความจุ: ${restaurant.capacityPerSlot} ที่นั่ง/รอบ\nเรตติ้ง: ${restaurant.rating}',
+                          'ความจุ: ${restaurant.capacityPerSlot} ที่นั่ง/รอบ\nเรตติ้ง: ${restaurant.rating} (${restaurant.reviewCount} รีวิว)',
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            // --- 1. ปุ่ม Favorite ---
                             if (userEmail != 'No Email')
                               StreamBuilder<DocumentSnapshot>(
                                 stream: FirebaseFirestore.instance
@@ -281,8 +282,62 @@ class _TestBookingPageState extends State<TestBookingPage> {
                                   );
                                 },
                               ),
-                              
 
+                            // --- 2. ปุ่มให้ดาว (Rating) ---
+                            IconButton(
+                              icon: const Icon(
+                                Icons.star_border,
+                                color: Colors.amber,
+                              ),
+                              onPressed: () {
+                                final userId =
+                                    FirebaseAuth.instance.currentUser?.uid;
+                                if (userId == null) {
+                                  print('กรุณาล็อกอินก่อนให้คะแนน');
+                                  return;
+                                }
+
+                                // แสดง Popup ให้เลือกดาว 1-5
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: Text(
+                                        'ให้คะแนน ${restaurant.name}',
+                                      ),
+                                      content: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: List.generate(5, (index) {
+                                          return IconButton(
+                                            icon: const Icon(
+                                              Icons.star,
+                                              color: Colors.amber,
+                                            ),
+                                            onPressed: () async {
+                                              Navigator.pop(
+                                                context,
+                                              ); // ปิด Popup
+
+                                              // เรียกใช้งานฟังก์ชัน submitRating
+                                              await _restaurantService
+                                                  .submitRating(
+                                                    restaurantId: restaurant.id,
+                                                    userId: userId,
+                                                    score: (index + 1)
+                                                        .toDouble(),
+                                                  );
+                                            },
+                                          );
+                                        }),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+
+                            // --- 3. ปุ่มจอง (Booking) ---
                             ElevatedButton(
                               onPressed: () async {
                                 final userId =
