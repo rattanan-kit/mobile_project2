@@ -78,13 +78,21 @@ class FavoritesPage extends StatelessWidget {
                       vertical: 8,
                     ),
                     child: ListTile(
-                      leading: Image.network(
-                        restaurant.imageUrl,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                        errorBuilder: (c, o, s) => const Icon(Icons.restaurant),
-                      ),
+                      // --- แก้ไขการดึงรูปภาพตรงนี้ ---
+                      leading: restaurant.images.isNotEmpty
+                          ? Image.network(
+                              restaurant
+                                  .images[0], // ดึงรูปที่ 1 (Index 0) มาโชว์
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (c, o, s) =>
+                                  const Icon(Icons.restaurant, size: 50),
+                            )
+                          : const Icon(
+                              Icons.restaurant,
+                              size: 50,
+                            ), // กรณีไม่มีรูปเลย
                       title: Text(restaurant.name),
                       trailing: IconButton(
                         icon: const Icon(Icons.favorite, color: Colors.red),
