@@ -1,0 +1,4 @@
+test การเชื่อมต่อ Firebase 
+test ระบบ registor & login เบื้องต้น
+
+firebase [project2] 
