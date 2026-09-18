@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/restaurant_service.dart';
 import '../models/restaurant_model.dart';
+import '../services/booking_service.dart';
 
 class TestBookingPage extends StatelessWidget {
   const TestBookingPage({super.key});
@@ -76,9 +77,33 @@ class TestBookingPage extends StatelessWidget {
                           'ความจุ: ${restaurant.capacityPerSlot} ที่นั่ง/รอบ\nเรตติ้ง: ${restaurant.rating}',
                         ),
                         trailing: ElevatedButton(
-                          onPressed: () {
-                            // เดี๋ยวเราจะมาเขียนฟังก์ชันจองโต๊ะตรงนี้!
-                            print('กดจองร้าน ${restaurant.name}');
+                          onPressed: () async {
+                            // 1. ดึง UID ของคนที่ล็อกอินอยู่
+                            final userId =
+                                FirebaseAuth.instance.currentUser?.uid;
+                            if (userId == null) {
+                              print('ยังไม่ได้ล็อกอิน');
+                              return;
+                            }
+
+                            // 2. เรียกใช้ Service เพื่อบันทึกการจอง (จำลองข้อมูลวันที่และจำนวนคนไปก่อน)
+                            final success = await BookingService()
+                                .createBooking(
+                                  restaurantId: restaurant.id,
+                                  userId: userId,
+                                  date: '2026-10-20', // ฟิกซ์วันที่ไว้เทส
+                                  timeSlot: '19:00', // ฟิกซ์เวลาไว้เทส
+                                  partySize: 2, // สมมติว่ามา 2 คน
+                                );
+
+                            // 3. แสดงผลลัพธ์ใน Terminal
+                            if (success) {
+                              print(
+                                'จองร้าน ${restaurant.name} สำเร็จ! (UID: $userId)',
+                              );
+                            } else {
+                              print('จองไม่สำเร็จ');
+                            }
                           },
                           child: const Text('จอง'),
                         ),
