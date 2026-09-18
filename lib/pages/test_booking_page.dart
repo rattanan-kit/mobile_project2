@@ -17,10 +17,8 @@ class TestBookingPage extends StatefulWidget {
 class _TestBookingPageState extends State<TestBookingPage> {
   final RestaurantService _restaurantService = RestaurantService();
 
-  // ตัวแปรเก็บสถานะว่าตอนนี้เลือกหมวดหมู่อะไรอยู่
   String _selectedTag = 'All';
 
-  // รายการป้ายกำกับ (Tags) ที่จะแสดงเป็นปุ่มให้กด
   final List<String> _availableTags = [
     'All',
     'thai',
@@ -30,6 +28,176 @@ class _TestBookingPageState extends State<TestBookingPage> {
     'shushi',
   ];
 
+  // --- ฟังก์ชันแสดงหน้าต่างเลือกข้อมูลการจอง (BottomSheet) ---
+  Future<void> _showBookingBottomSheet(
+    BuildContext context,
+    RestaurantModel restaurant,
+  ) async {
+    DateTime selectedDate = DateTime.now();
+    String selectedTime = '12:00';
+    int partySize = 2;
+
+    // สร้างลิสต์เวลา 08:00 - 20:00
+    final List<String> timeSlots = List.generate(
+      13,
+      (index) => '${(index + 8).toString().padLeft(2, '0')}:00',
+    );
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 20,
+                right: 20,
+                top: 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'จองโต๊ะ: ${restaurant.name}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 1. เลือกวันที่
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('วันที่จอง'),
+                    subtitle: Text(
+                      '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
+                      style: const TextStyle(color: Colors.blue, fontSize: 16),
+                    ),
+                    trailing: const Icon(Icons.calendar_today),
+                    onTap: () async {
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 30)),
+                      );
+                      if (picked != null) {
+                        setModalState(() => selectedDate = picked);
+                      }
+                    },
+                  ),
+
+                  // 2. เลือกเวลา
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('เวลา'),
+                    trailing: DropdownButton<String>(
+                      value: selectedTime,
+                      items: timeSlots.map((time) {
+                        return DropdownMenuItem(value: time, child: Text(time));
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() => selectedTime = val);
+                        }
+                      },
+                    ),
+                  ),
+
+                  // 3. เลือกจำนวนคน
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('จำนวนคน'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline),
+                          onPressed: partySize > 1
+                              ? () => setModalState(() => partySize--)
+                              : null,
+                        ),
+                        Text(
+                          '$partySize',
+                          style: const TextStyle(fontSize: 18),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add_circle_outline),
+                          onPressed: partySize < restaurant.capacityPerSlot
+                              ? () => setModalState(() => partySize++)
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ปุ่มยืนยันการจอง
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    onPressed: () async {
+                      final userId = FirebaseAuth.instance.currentUser?.uid;
+                      if (userId == null) return;
+
+                      String formattedDate =
+                          '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+
+                      print(
+                        '--- ส่งข้อมูลจอง: $formattedDate | $selectedTime | จำนวน $partySize คน ---',
+                      );
+
+                      final success = await BookingService().createBooking(
+                        restaurantId: restaurant.id,
+                        userId: userId,
+                        date: formattedDate,
+                        timeSlot: selectedTime,
+                        partySize: partySize,
+                      );
+
+                      Navigator.pop(context); // ปิดหน้าต่าง Popup
+
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('จองสำเร็จ! 🎉'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'จองไม่สำเร็จ (คิวอาจเต็มหรือคุณมีคิวนั้นแล้ว)',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text(
+                      'ยืนยันการจอง',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final userEmail = FirebaseAuth.instance.currentUser?.email ?? 'No Email';
@@ -38,7 +206,6 @@ class _TestBookingPageState extends State<TestBookingPage> {
       appBar: AppBar(
         title: const Text('Test Booking Flow'),
         actions: [
-          // --- ปุ่มข้อมูล Dummy ---
           IconButton(
             icon: const Icon(Icons.add_box, color: Colors.greenAccent),
             tooltip: 'เพิ่มร้านจำลอง',
@@ -47,14 +214,12 @@ class _TestBookingPageState extends State<TestBookingPage> {
               final CollectionReference restaurants = FirebaseFirestore.instance
                   .collection('restaurants');
 
-              // เตรียมข้อมูลร้าน 3 สไตล์ให้ตรงกับ tags ที่เราตั้งไว้เทส Filter
               final List<Map<String, dynamic>> dummyData = [
                 {
                   'name': 'ร้านข้าวแกงป้าสม',
                   'description': 'ข้าวแกงรสเด็ด อร่อยคุ้มค่า ราคาประหยัด',
                   'capacityPerSlot': 20,
                   'imageUrl': [
-                    // ตรงกับ Database ที่คุณเซ็ตไว้
                     'https://images.unsplash.com/photo-1559314809-0d155014e29e',
                     '',
                   ],
@@ -96,11 +261,10 @@ class _TestBookingPageState extends State<TestBookingPage> {
               ];
 
               try {
-                // วนลูปบันทึกลง Firebase ทีละร้าน
                 for (var data in dummyData) {
                   await restaurants.add(data);
                 }
-                print('✅ เสกข้อมูลร้านจำลองสำเร็จ! (ลองกด Filter ดูได้เลย)');
+                print('✅ เสกข้อมูลร้านจำลองสำเร็จ!');
               } catch (e) {
                 print('❌ เกิดข้อผิดพลาด: $e');
               }
@@ -161,8 +325,6 @@ class _TestBookingPageState extends State<TestBookingPage> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
-
-          // --- แถบปุ่มกด Filter หมวดหมู่ ---
           SizedBox(
             height: 50,
             child: ListView.builder(
@@ -187,8 +349,6 @@ class _TestBookingPageState extends State<TestBookingPage> {
             ),
           ),
           const Divider(),
-
-          // --- รายชื่อร้านอาหาร ---
           Expanded(
             child: StreamBuilder<List<RestaurantModel>>(
               stream: _restaurantService.getRestaurants(),
@@ -203,8 +363,6 @@ class _TestBookingPageState extends State<TestBookingPage> {
                 }
 
                 List<RestaurantModel> allRestaurants = snapshot.data ?? [];
-
-                // --- ระบบกรองข้อมูล (Filter Logic) ---
                 List<RestaurantModel> filteredRestaurants = allRestaurants;
                 if (_selectedTag != 'All') {
                   filteredRestaurants = allRestaurants
@@ -227,7 +385,6 @@ class _TestBookingPageState extends State<TestBookingPage> {
                     return Card(
                       margin: const EdgeInsets.all(16),
                       child: ListTile(
-                        // ดึงรูปจากตัวแปร images (ที่แมพมาจาก imageUrl ใน Model แล้ว)
                         leading: restaurant.images.isNotEmpty
                             ? Image.network(
                                 restaurant.images[0],
@@ -245,7 +402,6 @@ class _TestBookingPageState extends State<TestBookingPage> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // --- 1. ปุ่ม Favorite ---
                             if (userEmail != 'No Email')
                               StreamBuilder<DocumentSnapshot>(
                                 stream: FirebaseFirestore.instance
@@ -283,7 +439,6 @@ class _TestBookingPageState extends State<TestBookingPage> {
                                 },
                               ),
 
-                            // --- 2. ปุ่มให้ดาว (Rating) ---
                             IconButton(
                               icon: const Icon(
                                 Icons.star_border,
@@ -293,11 +448,14 @@ class _TestBookingPageState extends State<TestBookingPage> {
                                 final userId =
                                     FirebaseAuth.instance.currentUser?.uid;
                                 if (userId == null) {
-                                  print('กรุณาล็อกอินก่อนให้คะแนน');
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('กรุณาล็อกอินก่อนให้คะแนน'),
+                                    ),
+                                  );
                                   return;
                                 }
 
-                                // แสดง Popup ให้เลือกดาว 1-5
                                 showDialog(
                                   context: context,
                                   builder: (context) {
@@ -315,11 +473,7 @@ class _TestBookingPageState extends State<TestBookingPage> {
                                               color: Colors.amber,
                                             ),
                                             onPressed: () async {
-                                              Navigator.pop(
-                                                context,
-                                              ); // ปิด Popup
-
-                                              // เรียกใช้งานฟังก์ชัน submitRating
+                                              Navigator.pop(context);
                                               await _restaurantService
                                                   .submitRating(
                                                     restaurantId: restaurant.id,
@@ -337,32 +491,21 @@ class _TestBookingPageState extends State<TestBookingPage> {
                               },
                             ),
 
-                            // --- 3. ปุ่มจอง (Booking) ---
                             ElevatedButton(
-                              onPressed: () async {
+                              onPressed: () {
                                 final userId =
                                     FirebaseAuth.instance.currentUser?.uid;
                                 if (userId == null) {
-                                  print('ยังไม่ได้ล็อกอิน');
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('กรุณาล็อกอินก่อนจองโต๊ะ'),
+                                    ),
+                                  );
                                   return;
                                 }
 
-                                final success = await BookingService()
-                                    .createBooking(
-                                      restaurantId: restaurant.id,
-                                      userId: userId,
-                                      date: '2026-10-20',
-                                      timeSlot: '12:00',
-                                      partySize: 2,
-                                    );
-
-                                if (success) {
-                                  print(
-                                    'จองร้าน ${restaurant.name} สำเร็จ! (UID: $userId)',
-                                  );
-                                } else {
-                                  print('จองไม่สำเร็จ');
-                                }
+                                // เรียกฟังก์ชันเปิด Popup จองโต๊ะ
+                                _showBookingBottomSheet(context, restaurant);
                               },
                               child: const Text('จอง'),
                             ),
