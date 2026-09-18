@@ -4,6 +4,10 @@ import '../services/auth_service.dart';
 import '../services/restaurant_service.dart';
 import '../models/restaurant_model.dart';
 import '../services/booking_service.dart';
+import 'favorites_page.dart';
+
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TestBookingPage extends StatelessWidget {
   const TestBookingPage({super.key});
@@ -17,6 +21,17 @@ class TestBookingPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Test Booking Flow'),
         actions: [
+          // ปุ่มไปหน้าร้านโปรด
+          IconButton(
+            icon: const Icon(Icons.favorite),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FavoritesPage()),
+              );
+            },
+          ),
+          // ปุ่ม Logout เดิม
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
@@ -76,36 +91,67 @@ class TestBookingPage extends StatelessWidget {
                         subtitle: Text(
                           'ความจุ: ${restaurant.capacityPerSlot} ที่นั่ง/รอบ\nเรตติ้ง: ${restaurant.rating}',
                         ),
-                        trailing: ElevatedButton(
-                          onPressed: () async {
-                            // 1. ดึง UID ของคนที่ล็อกอินอยู่
-                            final userId =
-                                FirebaseAuth.instance.currentUser?.uid;
-                            if (userId == null) {
-                              print('ยังไม่ได้ล็อกอิน');
-                              return;
-                            }
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // --- ส่วนที่เพิ่มใหม่: ปุ่มกดหัวใจ ---
+                            if (userEmail != 'No Email') // เช็กว่าล็อกอินอยู่ไหม
+                              StreamBuilder<DocumentSnapshot>(
+                                stream: FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser?.uid).snapshots(),
+                                builder: (context, userSnap) {
+                                  if (!userSnap.hasData || !userSnap.data!.exists) {
+                                    return const Icon(Icons.favorite_border, color: Colors.grey);
+                                  }
+                                  
+                                  // ดึง Array ร้านโปรดมาเช็ก
+                                  List<dynamic> favorites = userSnap.data!.get('favorites') ?? [];
+                                  bool isFav = favorites.contains(restaurant.id);
 
-                            // 2. เรียกใช้ Service เพื่อบันทึกการจอง (จำลองข้อมูลวันที่และจำนวนคนไปก่อน)
-                            final success = await BookingService()
-                                .createBooking(
-                                  restaurantId: restaurant.id,
-                                  userId: userId,
-                                  date: '2026-10-20', // ฟิกซ์วันที่ไว้เทส
-                                  timeSlot: '12:00', // ฟิกซ์เวลาไว้เทส
-                                  partySize: 2, // สมมติว่ามา 2 คน
-                                );
+                                  return IconButton(
+                                    icon: Icon(
+                                      isFav ? Icons.favorite : Icons.favorite_border,
+                                      color: isFav ? Colors.red : Colors.grey,
+                                    ),
+                                    onPressed: () {
+                                      AuthService().toggleFavorite(restaurant.id);
+                                    },
+                                  );
+                                },
+                              ),
 
-                            // 3. แสดงผลลัพธ์ใน Terminal
-                            if (success) {
-                              print(
-                                'จองร้าน ${restaurant.name} สำเร็จ! (UID: $userId)',
-                              );
-                            } else {
-                              print('จองไม่สำเร็จ');
-                            }
-                          },
-                          child: const Text('จอง'),
+                            // --- ส่วนเดิม: ปุ่มจองโต๊ะ ---
+                            ElevatedButton(
+                              onPressed: () async {
+                                // 1. ดึง UID ของคนที่ล็อกอินอยู่
+                                final userId =
+                                    FirebaseAuth.instance.currentUser?.uid;
+                                if (userId == null) {
+                                  print('ยังไม่ได้ล็อกอิน');
+                                  return;
+                                }
+
+                                // 2. เรียกใช้ Service เพื่อบันทึกการจอง (จำลองข้อมูลวันที่และจำนวนคนไปก่อน)
+                                final success = await BookingService()
+                                    .createBooking(
+                                      restaurantId: restaurant.id,
+                                      userId: userId,
+                                      date: '2026-10-20', // ฟิกซ์วันที่ไว้เทส
+                                      timeSlot: '12:00', // ฟิกซ์เวลาไว้เทส
+                                      partySize: 2, // สมมติว่ามา 2 คน
+                                    );
+                                    
+                                // 3. แสดงผลลัพธ์ใน Terminal
+                                if (success) {
+                                  print(
+                                    'จองร้าน ${restaurant.name} สำเร็จ! (UID: $userId)',
+                                  );
+                                } else {
+                                  print('จองไม่สำเร็จ');
+                                }
+                              },
+                              child: const Text('จอง'),
+                            ),
+                          ],
                         ),
                       ),
                     );

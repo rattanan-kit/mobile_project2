@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -52,13 +53,14 @@ class _LoginPageState extends State<LoginPage> {
                   child: const Text('Login'),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    var user = await _auth.register(
-                      _emailCtrl.text,
-                      _passwordCtrl.text,
+                  onPressed: () {
+                    // เปลี่ยนจากการเรียก _auth.register เป็นการสั่งเปลี่ยนหน้าแทน
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterPage(),
+                      ), // ชื่อคลาสของหน้าสมัครสมาชิกที่คุณเพิ่งสร้าง
                     );
-                    if (user == null)
-                      setState(() => _errorMessage = 'สมัครล้มเหลว');
                   },
                   child: const Text('Register'),
                 ),

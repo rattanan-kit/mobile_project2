@@ -1,0 +1,106 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../models/restaurant_model.dart';
+import '../services/auth_service.dart';
+
+class FavoritesPage extends StatelessWidget {
+  const FavoritesPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('ร้านโปรด')),
+        body: const Center(child: Text('กรุณาล็อกอินเพื่อดูร้านโปรด')),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('ร้านโปรดของฉัน 💖')),
+      body: StreamBuilder<DocumentSnapshot>(
+        // 1. ฟังข้อมูล User เพื่อเอา Array 'favorites'
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .snapshots(),
+        builder: (context, userSnapshot) {
+          if (userSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          List<dynamic> favorites = [];
+          if (userSnapshot.hasData && userSnapshot.data!.exists) {
+            // ป้องกัน Error กรณี field favorites หายไป
+            try {
+              favorites = userSnapshot.data!.get('favorites') ?? [];
+            } catch (e) {
+              favorites = [];
+            }
+          }
+
+          if (favorites.isEmpty) {
+            return const Center(
+              child: Text('คุณยังไม่มีร้านโปรดเลย ลองไปกดหัวใจดูสิ!'),
+            );
+          }
+
+          // 2. เอา Array มาค้นหาร้านอาหารทั้งหมดที่ตรงกับ ID
+          return StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('restaurants')
+                .where(
+                  FieldPath.documentId,
+                  whereIn: favorites,
+                ) // ค้นหาเฉพาะ ID ที่อยู่ใน List
+                .snapshots(),
+            builder: (context, restSnapshot) {
+              if (restSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final restaurants = restSnapshot.data?.docs ?? [];
+
+              return ListView.builder(
+                itemCount: restaurants.length,
+                itemBuilder: (context, index) {
+                  final doc = restaurants[index];
+                  final restaurant = RestaurantModel.fromJson(
+                    doc.data() as Map<String, dynamic>,
+                    doc.id,
+                  );
+
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: ListTile(
+                      leading: Image.network(
+                        restaurant.imageUrl,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                        errorBuilder: (c, o, s) => const Icon(Icons.restaurant),
+                      ),
+                      title: Text(restaurant.name),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.favorite, color: Colors.red),
+                        onPressed: () {
+                          // กดหัวใจอีกรอบเพื่อเอาออกจากร้านโปรดได้เลยจากหน้านี้
+                          AuthService().toggleFavorite(restaurant.id);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
