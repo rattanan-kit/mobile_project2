@@ -1,17 +1,19 @@
 class RestaurantModel {
   final String id;
   final String name;
-  final List<String> images; 
-  final List<String> tags; 
+  final String description; // <-- เพิ่มตรงนี้
+  final List<String> images;
+  final List<String> tags;
   final double rating;
   final int reviewCount;
-  final double lat; 
-  final double lng; 
+  final double lat;
+  final double lng;
   final int capacityPerSlot;
 
   RestaurantModel({
     required this.id,
     required this.name,
+    required this.description, // <-- เพิ่มตรงนี้
     required this.images,
     required this.tags,
     required this.rating,
@@ -25,8 +27,10 @@ class RestaurantModel {
     return RestaurantModel(
       id: id,
       name: json['name'] ?? 'ไม่มีชื่อร้าน',
-      // ดึงข้อมูลเป็น List ถ้าไม่มีให้เป็น List ว่าง
-      images: List<String>.from(json['imageUrl'] ?? []),
+      description: json['description'] ?? '', // <-- เพิ่มดึงข้อมูลตรงนี้
+      images: List<String>.from(
+        json['imageUrl'] ?? [],
+      ), // ใช้ imageUrl ตามที่คุณตั้งไว้
       tags: List<String>.from(json['tags'] ?? []),
       rating: (json['rating'] ?? 0.0).toDouble(),
       reviewCount: json['reviewCount'] ?? 0,

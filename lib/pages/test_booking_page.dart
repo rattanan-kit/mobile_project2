@@ -17,7 +17,12 @@ class TestBookingPage extends StatefulWidget {
 class _TestBookingPageState extends State<TestBookingPage> {
   final RestaurantService _restaurantService = RestaurantService();
 
+  // 1. สร้างตัวแปรมารับ Stream เพื่อให้ดึงข้อมูลมาเก็บใน RAM แค่ครั้งเดียว
+  late Stream<List<RestaurantModel>> _restaurantStream;
+
   String _selectedTag = 'All';
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   final List<String> _availableTags = [
     'All',
@@ -27,6 +32,20 @@ class _TestBookingPageState extends State<TestBookingPage> {
     'cafe',
     'shushi',
   ];
+
+  // 2. สั่งให้ดึงข้อมูลจาก Firebase ทันทีที่เปิดหน้านี้ (ดึงแค่ครั้งเดียว!)
+  @override
+  void initState() {
+    super.initState();
+    _restaurantStream = _restaurantService.getRestaurants();
+  }
+
+  // คืนพื้นที่หน่วยความจำเมื่อปิดหน้าแอป (Best Practice)
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   // --- ฟังก์ชันแสดงหน้าต่างเลือกข้อมูลการจอง (BottomSheet) ---
   Future<void> _showBookingBottomSheet(
@@ -151,10 +170,6 @@ class _TestBookingPageState extends State<TestBookingPage> {
                       String formattedDate =
                           '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
 
-                      print(
-                        '--- ส่งข้อมูลจอง: $formattedDate | $selectedTime | จำนวน $partySize คน ---',
-                      );
-
                       final success = await BookingService().createBooking(
                         restaurantId: restaurant.id,
                         userId: userId,
@@ -176,7 +191,7 @@ class _TestBookingPageState extends State<TestBookingPage> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'จองไม่สำเร็จ (คิวอาจเต็มหรือคุณมีคิวนั้นแล้ว)',
+                              'จองไม่สำเร็จ (คิวอาจเต็มหรือมีบิลค้าง)',
                             ),
                             backgroundColor: Colors.red,
                           ),
@@ -325,6 +340,47 @@ class _TestBookingPageState extends State<TestBookingPage> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
+
+          // --- ช่องค้นหา (Search Bar) ---
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'ค้นหาชื่อร้าน, แท็ก, หรือรายละเอียด...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 0,
+                  horizontal: 20,
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value
+                      .toLowerCase(); // ค้นหาแบบไม่สนตัวพิมพ์เล็กใหญ่
+                });
+              },
+            ),
+          ),
+
+          // --- แถบปุ่มกด Filter หมวดหมู่ ---
           SizedBox(
             height: 50,
             child: ListView.builder(
@@ -349,9 +405,11 @@ class _TestBookingPageState extends State<TestBookingPage> {
             ),
           ),
           const Divider(),
+
+          // --- รายชื่อร้านอาหาร ---
           Expanded(
             child: StreamBuilder<List<RestaurantModel>>(
-              stream: _restaurantService.getRestaurants(),
+              stream: _restaurantStream, // ใช้ตัวแปรที่ดึงจาก initState
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -364,17 +422,36 @@ class _TestBookingPageState extends State<TestBookingPage> {
 
                 List<RestaurantModel> allRestaurants = snapshot.data ?? [];
                 List<RestaurantModel> filteredRestaurants = allRestaurants;
+
+                // 1. กรองด้วย Tag
                 if (_selectedTag != 'All') {
-                  filteredRestaurants = allRestaurants
+                  filteredRestaurants = filteredRestaurants
                       .where(
                         (restaurant) => restaurant.tags.contains(_selectedTag),
                       )
                       .toList();
                 }
 
+                // 2. กรองด้วย Search Query (หาจาก RAM รวดเดียว)
+                if (_searchQuery.isNotEmpty) {
+                  filteredRestaurants = filteredRestaurants.where((restaurant) {
+                    final nameMatch = restaurant.name.toLowerCase().contains(
+                      _searchQuery,
+                    );
+                    final descMatch = restaurant.description
+                        .toLowerCase()
+                        .contains(_searchQuery);
+                    final tagMatch = restaurant.tags.any(
+                      (tag) => tag.toLowerCase().contains(_searchQuery),
+                    );
+
+                    return nameMatch || descMatch || tagMatch;
+                  }).toList();
+                }
+
                 if (filteredRestaurants.isEmpty) {
                   return const Center(
-                    child: Text('ไม่พบข้อมูลร้านอาหารในหมวดหมู่นี้'),
+                    child: Text('ไม่พบข้อมูลร้านอาหารที่ค้นหา'),
                   );
                 }
 
@@ -383,7 +460,10 @@ class _TestBookingPageState extends State<TestBookingPage> {
                   itemBuilder: (context, index) {
                     final restaurant = filteredRestaurants[index];
                     return Card(
-                      margin: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: ListTile(
                         leading: restaurant.images.isNotEmpty
                             ? Image.network(
@@ -397,7 +477,9 @@ class _TestBookingPageState extends State<TestBookingPage> {
                             : const Icon(Icons.restaurant, size: 40),
                         title: Text(restaurant.name),
                         subtitle: Text(
-                          'ความจุ: ${restaurant.capacityPerSlot} ที่นั่ง/รอบ\nเรตติ้ง: ${restaurant.rating} (${restaurant.reviewCount} รีวิว)',
+                          '${restaurant.description}\nความจุ: ${restaurant.capacityPerSlot} ที่นั่ง/รอบ\nเรตติ้ง: ${restaurant.rating} (${restaurant.reviewCount} รีวิว)',
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -504,7 +586,6 @@ class _TestBookingPageState extends State<TestBookingPage> {
                                   return;
                                 }
 
-                                // เรียกฟังก์ชันเปิด Popup จองโต๊ะ
                                 _showBookingBottomSheet(context, restaurant);
                               },
                               child: const Text('จอง'),
