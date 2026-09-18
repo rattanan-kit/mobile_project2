@@ -4,3 +4,6 @@ test การเชื่อมต่อ Firebase
 test ระบบ registor & login เบื้องต้น
 
 test การดึงข้อมูลร้านอาหารทั้งหมดมาเป็น Stream (Real-time)
+test การบันทึกการจองของร้านนี้มาเป็น Database (Firestore)
+     แบ่งเป็น test ย่อยหลายอย่างเกี่ยวกับการจองร้านนี้
+     
