@@ -31,6 +31,35 @@ class TestBookingPage extends StatelessWidget {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () async {
+              final userId = FirebaseAuth.instance.currentUser?.uid;
+              if (userId == null) return;
+
+              print('--- กำลังดึงประวัติการจอง ---');
+              final bookings = await BookingService().getUserBookings(userId);
+              
+              if (bookings.isEmpty) {
+                print('ไม่มีประวัติการจอง');
+                return;
+              }
+
+              // ปริ้นต์รายการจองทั้งหมดออกมาดู
+              for (var doc in bookings) {
+                print('ID: ${doc.id} | วันที่: ${doc['date']} | สถานะ: ${doc['status']}');
+              }
+
+              // --- เทสระบบยกเลิก: ลองยกเลิกคิวแรกที่สถานะยังเป็น confirmed ---
+              for (var doc in bookings) {
+                if (doc['status'] == 'confirmed') {
+                  print('กำลังพยายามยกเลิกคิว ${doc.id}...');
+                  await BookingService().cancelBooking(doc.id);
+                  break; // ยกเลิกแค่อันเดียวพอเพื่อเทส
+                }
+              }
+            },
+          ),
           // ปุ่ม Logout เดิม
           IconButton(
             icon: const Icon(Icons.logout),
