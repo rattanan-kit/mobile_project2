@@ -35,3 +35,5 @@ test การยกเลิกโดยจะแสดงใน terminal ว�
 ลืม commit ตอนแรกทำ api google map ไปขอ key มาแต่ว่ามันต้องจ่าย pre 1000 เลยอาจจะไม่จ่ายแต่ set up ใน android/app/source/main/androidManifest.xml
 แล้วก็ไปแก้ตัว web index html เพื่อให้ดึง map มาลอง test บน chrome ได้
 แต่ตอนนี้ใช้เป็น road map ของตัว flutter เลยเพราะว่าจะได้ง่ายต่อการทำ และฟรี แต่รายละเอียดไม่เท่า google map
+
+UI หน้า Home 

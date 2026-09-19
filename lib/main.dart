@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart'; // เพิ่ม Google Fonts
 import 'firebase_options.dart';
 
-// Import หน้าจอที่เราสร้างไฟล์เปล่าๆ ไว้ (เดี๋ยวเราไปเติมโค้ดทีหลัง)
 import 'pages/login_page.dart';
-import 'pages/test_booking_page.dart';
+import 'pages/main_screen.dart'; // ไฟล์ใหม่ท
 
 void main() async {
-  // คำสั่งบังคับให้ Flutter รอการเชื่อมต่อ Firebase ให้เสร็จก่อนเปิดแอป
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
@@ -21,17 +20,26 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Restaurant Reservation PoC',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      // ใช้ StreamBuilder เช็กว่า "ล็อกอินหรือยัง?"
+      title: 'Restaurant Booking',
+      // --- ใส่ Theme หลักของตรงนี้ ---
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFFF5722), // สีส้ม
+          primary: const Color(0xFFFF5722),
+          background: const Color(0xFFF8F9FA),
+        ),
+        textTheme: GoogleFonts.promptTextTheme(Theme.of(context).textTheme),
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+      ),
+      // -----------------------------
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          // ถ้ามีข้อมูล User = ล็อกอินแล้ว ให้ไปหน้าเทสจองโต๊ะ
+          // ถ้าล็อกอินแล้ว ไปหน้า MainScreen เลย
           if (snapshot.hasData) {
-            return const TestBookingPage();
+            return const MainScreen();
           }
-          // ถ้าไม่มีข้อมูล = ยังไม่ล็อกอิน ให้ไปหน้า Login
+          // ถ้ายังไม่ล็อกอิน ไปหน้า LoginPage
           return const LoginPage();
         },
       ),
