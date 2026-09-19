@@ -233,6 +233,17 @@ class _TestBookingPageState extends State<TestBookingPage> {
                 {
                   'name': 'ร้านข้าวแกงป้าสม',
                   'description': 'ข้าวแกงรสเด็ด อร่อยคุ้มค่า ราคาประหยัด',
+
+                  // --- เพิ่มข้อมูลใหม่ตรงนี้ ---
+                  'address':
+                      '123 ถ.สุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110',
+                  'phoneNumber': '081-234-5678',
+                  'socialLinks': {
+                    'facebook': 'fb.com/pasomcurry',
+                    'instagram': '@pasom_curry',
+                  },
+
+                  // ------------------------
                   'capacityPerSlot': 20,
                   'imageUrl': [
                     'https://images.unsplash.com/photo-1559314809-0d155014e29e',
@@ -247,6 +258,13 @@ class _TestBookingPageState extends State<TestBookingPage> {
                 {
                   'name': 'ซูชิขั้นเทพ (Sushi God)',
                   'description': 'ซูชิปลาสด ส่งตรงจากญี่ปุ่น',
+
+                  // --- เพิ่มข้อมูลใหม่ตรงนี้ ---
+                  'address': 'ห้างสยามพารากอน ชั้น 4',
+                  'phoneNumber': '02-999-9999',
+                  'socialLinks': {'facebook': 'fb.com/sushigod'},
+
+                  // ------------------------
                   'capacityPerSlot': 10,
                   'imageUrl': [
                     'https://images.unsplash.com/photo-1579871494447-9811cf80d66c',
@@ -257,21 +275,6 @@ class _TestBookingPageState extends State<TestBookingPage> {
                   'rating': 4.8,
                   'reviewCount': 250,
                   'tags': ['japanese', 'sushi', 'ซูชิ', 'ญี่ปุ่น'],
-                },
-                {
-                  'name': 'Sweet Cafe & Dessert',
-                  'description':
-                      'กาแฟหอมกรุ่น บรรยากาศชิลๆ พร้อมเบเกอรี่โฮมเมด',
-                  'capacityPerSlot': 15,
-                  'imageUrl': [
-                    'https://images.unsplash.com/photo-1554118811-1e0d58224f24',
-                    '',
-                  ],
-                  'lat': 13.7363,
-                  'lng': 100.5218,
-                  'rating': 4.2,
-                  'reviewCount': 85,
-                  'tags': ['cafe', 'dessert', 'ของหวาน', 'ทานเล่น'],
                 },
               ];
 

@@ -24,3 +24,7 @@ test การยกเลิกโดยจะแสดงใน terminal ว�
 เพิ่มระบบให้ดาว
 ทำระบบ search & แล้วก็ ดึงข้อมูลจาก Firestore มาเก็บใน ram เลยเพราะว่าจะได้ง่ายต่อการทำ search แบบไม่ต้องไปถามหาจาก firebase
  ทุกครั้งที่ search จะได้ดึงข้อมูลร้านทั้งหมดมาทีเดียวเก็บไว้ใน ram เลย
+ เพิ่ม database 
+    address;
+    phoneNumber;
+    socialLinks;
