@@ -6,6 +6,7 @@ import '../services/restaurant_service.dart';
 import '../models/restaurant_model.dart';
 import '../services/booking_service.dart';
 import 'favorites_page.dart';
+import 'restaurant_detail_page.dart'; // <-- เพิ่ม Import หน้า Detail ตรงนี้
 
 class TestBookingPage extends StatefulWidget {
   const TestBookingPage({super.key});
@@ -246,8 +247,11 @@ class _TestBookingPageState extends State<TestBookingPage> {
                   // ------------------------
                   'capacityPerSlot': 20,
                   'imageUrl': [
-                    'https://images.unsplash.com/photo-1559314809-0d155014e29e',
-                    '',
+                    "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+                    "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+                    "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+                    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+                    "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",
                   ],
                   'lat': 13.7563,
                   'lng': 100.5018,
@@ -267,8 +271,11 @@ class _TestBookingPageState extends State<TestBookingPage> {
                   // ------------------------
                   'capacityPerSlot': 10,
                   'imageUrl': [
-                    'https://images.unsplash.com/photo-1579871494447-9811cf80d66c',
-                    '',
+                    "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+                    "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+                    "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+                    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+                    "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",
                   ],
                   'lat': 13.7463,
                   'lng': 100.5318,
@@ -467,133 +474,153 @@ class _TestBookingPageState extends State<TestBookingPage> {
                         horizontal: 16,
                         vertical: 8,
                       ),
-                      child: ListTile(
-                        leading: restaurant.images.isNotEmpty
-                            ? Image.network(
-                                restaurant.images[0],
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.cover,
-                                errorBuilder: (c, o, s) =>
-                                    const Icon(Icons.restaurant, size: 40),
-                              )
-                            : const Icon(Icons.restaurant, size: 40),
-                        title: Text(restaurant.name),
-                        subtitle: Text(
-                          '${restaurant.description}\nความจุ: ${restaurant.capacityPerSlot} ที่นั่ง/รอบ\nเรตติ้ง: ${restaurant.rating} (${restaurant.reviewCount} รีวิว)',
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (userEmail != 'No Email')
-                              StreamBuilder<DocumentSnapshot>(
-                                stream: FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(FirebaseAuth.instance.currentUser?.uid)
-                                    .snapshots(),
-                                builder: (context, userSnap) {
-                                  if (!userSnap.hasData ||
-                                      !userSnap.data!.exists) {
-                                    return const Icon(
-                                      Icons.favorite_border,
-                                      color: Colors.grey,
+                      // --- เอา InkWell มาครอบ ListTile เพื่อให้กดแล้วไปหน้า Detail ได้ ---
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  RestaurantDetailPage(restaurant: restaurant),
+                            ),
+                          );
+                        },
+                        child: ListTile(
+                          leading: restaurant.images.isNotEmpty
+                              ? Image.network(
+                                  restaurant.images[0],
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (c, o, s) =>
+                                      const Icon(Icons.restaurant, size: 40),
+                                )
+                              : const Icon(Icons.restaurant, size: 40),
+                          title: Text(restaurant.name),
+                          subtitle: Text(
+                            '${restaurant.description}\nความจุ: ${restaurant.capacityPerSlot} ที่นั่ง/รอบ\nเรตติ้ง: ${restaurant.rating} (${restaurant.reviewCount} รีวิว)',
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (userEmail != 'No Email')
+                                StreamBuilder<DocumentSnapshot>(
+                                  stream: FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(
+                                        FirebaseAuth.instance.currentUser?.uid,
+                                      )
+                                      .snapshots(),
+                                  builder: (context, userSnap) {
+                                    if (!userSnap.hasData ||
+                                        !userSnap.data!.exists) {
+                                      return const Icon(
+                                        Icons.favorite_border,
+                                        color: Colors.grey,
+                                      );
+                                    }
+
+                                    List<dynamic> favorites =
+                                        userSnap.data!.get('favorites') ?? [];
+                                    bool isFav = favorites.contains(
+                                      restaurant.id,
                                     );
+
+                                    return IconButton(
+                                      icon: Icon(
+                                        isFav
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: isFav ? Colors.red : Colors.grey,
+                                      ),
+                                      onPressed: () {
+                                        AuthService().toggleFavorite(
+                                          restaurant.id,
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.star_border,
+                                  color: Colors.amber,
+                                ),
+                                onPressed: () {
+                                  final userId =
+                                      FirebaseAuth.instance.currentUser?.uid;
+                                  if (userId == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'กรุณาล็อกอินก่อนให้คะแนน',
+                                        ),
+                                      ),
+                                    );
+                                    return;
                                   }
 
-                                  List<dynamic> favorites =
-                                      userSnap.data!.get('favorites') ?? [];
-                                  bool isFav = favorites.contains(
-                                    restaurant.id,
-                                  );
-
-                                  return IconButton(
-                                    icon: Icon(
-                                      isFav
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      color: isFav ? Colors.red : Colors.grey,
-                                    ),
-                                    onPressed: () {
-                                      AuthService().toggleFavorite(
-                                        restaurant.id,
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text(
+                                          'ให้คะแนน ${restaurant.name}',
+                                        ),
+                                        content: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: List.generate(5, (index) {
+                                            return IconButton(
+                                              icon: const Icon(
+                                                Icons.star,
+                                                color: Colors.amber,
+                                              ),
+                                              onPressed: () async {
+                                                Navigator.pop(context);
+                                                await _restaurantService
+                                                    .submitRating(
+                                                      restaurantId:
+                                                          restaurant.id,
+                                                      userId: userId,
+                                                      score: (index + 1)
+                                                          .toDouble(),
+                                                    );
+                                              },
+                                            );
+                                          }),
+                                        ),
                                       );
                                     },
                                   );
                                 },
                               ),
 
-                            IconButton(
-                              icon: const Icon(
-                                Icons.star_border,
-                                color: Colors.amber,
-                              ),
-                              onPressed: () {
-                                final userId =
-                                    FirebaseAuth.instance.currentUser?.uid;
-                                if (userId == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('กรุณาล็อกอินก่อนให้คะแนน'),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: Text(
-                                        'ให้คะแนน ${restaurant.name}',
-                                      ),
-                                      content: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: List.generate(5, (index) {
-                                          return IconButton(
-                                            icon: const Icon(
-                                              Icons.star,
-                                              color: Colors.amber,
-                                            ),
-                                            onPressed: () async {
-                                              Navigator.pop(context);
-                                              await _restaurantService
-                                                  .submitRating(
-                                                    restaurantId: restaurant.id,
-                                                    userId: userId,
-                                                    score: (index + 1)
-                                                        .toDouble(),
-                                                  );
-                                            },
-                                          );
-                                        }),
+                              // ปล่อยปุ่มจองไว้ตรงนี้เหมือนเดิม (หรือจะลบออกก็ได้เพราะในหน้า Detail ก็มีปุ่มจองใหญ่ๆ แล้ว)
+                              ElevatedButton(
+                                onPressed: () {
+                                  final userId =
+                                      FirebaseAuth.instance.currentUser?.uid;
+                                  if (userId == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'กรุณาล็อกอินก่อนจองโต๊ะ',
+                                        ),
                                       ),
                                     );
-                                  },
-                                );
-                              },
-                            ),
+                                    return;
+                                  }
 
-                            ElevatedButton(
-                              onPressed: () {
-                                final userId =
-                                    FirebaseAuth.instance.currentUser?.uid;
-                                if (userId == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('กรุณาล็อกอินก่อนจองโต๊ะ'),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                _showBookingBottomSheet(context, restaurant);
-                              },
-                              child: const Text('จอง'),
-                            ),
-                          ],
+                                  _showBookingBottomSheet(context, restaurant);
+                                },
+                                child: const Text('จอง'),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );

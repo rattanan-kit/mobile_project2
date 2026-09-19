@@ -28,3 +28,5 @@ test การยกเลิกโดยจะแสดงใน terminal ว�
     address;
     phoneNumber;
     socialLinks;
+
+ทำหน้าตาตอนกดเข้าไปว่าจะโชว์อะไรบ้างของร้านนั้น (ยังไม่มี google map api)
