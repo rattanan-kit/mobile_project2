@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart'; // <-- ใช้ของใหม่ OpenStreetMap
+import 'package:latlong2/latlong.dart'; // <-- สำหรับจัดการพิกัด
 import '../models/restaurant_model.dart';
 
 class RestaurantDetailPage extends StatelessWidget {
@@ -8,7 +10,6 @@ class RestaurantDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // แยกรูปหน้าร้าน (index 0) กับ รูปเมนู (index 1 เป็นต้นไป)
     final String storefrontImage = restaurant.images.isNotEmpty
         ? restaurant.images[0]
         : '';
@@ -19,7 +20,7 @@ class RestaurantDetailPage extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // --- 1. รูปหน้าร้านแบบอลังการ (SliverAppBar) ---
+          // --- 1. รูปหน้าร้านแบบอลังการ ---
           SliverAppBar(
             expandedHeight: 250.0,
             pinned: true,
@@ -34,9 +35,7 @@ class RestaurantDetailPage extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.favorite_border),
-                onPressed: () {
-                  // TODO: โค้ดกดหัวใจ
-                },
+                onPressed: () {},
               ),
             ],
           ),
@@ -51,7 +50,6 @@ class RestaurantDetailPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ชื่อร้านและเรตติ้ง
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -85,7 +83,6 @@ class RestaurantDetailPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
 
-                      // หมวดหมู่ (Tags)
                       Wrap(
                         spacing: 8,
                         children: restaurant.tags
@@ -103,7 +100,6 @@ class RestaurantDetailPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
 
-                      // รายละเอียดร้าน
                       const Text(
                         'เกี่ยวกับร้าน',
                         style: TextStyle(
@@ -125,7 +121,7 @@ class RestaurantDetailPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // --- 3. ส่วนรูปเมนู (Animated Carousel เลื่อนแนวนอน) ---
+                // --- 3. ส่วนรูปเมนู (Animated Carousel) ---
                 if (menuImages.isNotEmpty) ...[
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -138,14 +134,11 @@ class RestaurantDetailPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // เรียกใช้ Widget Carousel แบบย่อขยายที่เราสร้างไว้ด้านล่าง
                   MenuCarousel(images: menuImages),
-
                   const SizedBox(height: 24),
                 ],
 
-                // --- 4. แผนที่และที่อยู่ (Placeholder) ---
+                // --- 4. แผนที่และที่อยู่ (OpenStreetMap - ฟรี 100%) ---
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
@@ -159,27 +152,52 @@ class RestaurantDetailPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Container(
-                        height: 150,
+
+                      SizedBox(
+                        height: 200,
                         width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
+                        child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.map, size: 40, color: Colors.grey),
-                            SizedBox(height: 8),
-                            Text(
-                              'พื้นที่สำหรับใส่ Google Maps API',
-                              style: TextStyle(color: Colors.grey),
+                          child: FlutterMap(
+                            options: MapOptions(
+                              initialCenter: LatLng(
+                                restaurant.lat,
+                                restaurant.lng,
+                              ),
+                              initialZoom: 15.0,
                             ),
-                          ],
+                            children: [
+                              // ดึงรูปแผนที่ฟรีจาก OpenStreetMap
+                              TileLayer(
+                                urlTemplate:
+                                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName:
+                                    'com.example.app', // เปลี่ยนเป็นชื่อ package จริงๆ ของคุณก็ได้
+                              ),
+                              // ปักหมุดสีแดง
+                              MarkerLayer(
+                                markers: [
+                                  Marker(
+                                    point: LatLng(
+                                      restaurant.lat,
+                                      restaurant.lng,
+                                    ),
+                                    width: 80,
+                                    height: 80,
+                                    child: const Icon(
+                                      Icons.location_on,
+                                      color: Colors.red,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
+
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -212,7 +230,7 @@ class RestaurantDetailPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 40), // เผื่อที่เว้นว่างด้านล่างสุด
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
@@ -222,7 +240,6 @@ class RestaurantDetailPage extends StatelessWidget {
         ],
       ),
 
-      // --- 5. ปุ่มจองโต๊ะ (Sticky Bottom Bar) ---
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -236,7 +253,6 @@ class RestaurantDetailPage extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
             onPressed: () {
-              // TODO: ย้ายฟังก์ชันเปิดหน้าต่างจองโต๊ะมาใส่ตรงนี้
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('กำลังเปิดหน้าต่างจองโต๊ะ...')),
               );
@@ -253,7 +269,7 @@ class RestaurantDetailPage extends StatelessWidget {
 }
 
 // =========================================================================
-// Widget สำหรับทำระบบเลื่อนการ์ดเมนูแบบมีแอนิเมชันย่อขยาย (Animated Carousel)
+// Widget MenuCarousel (คงเดิม)
 // =========================================================================
 class MenuCarousel extends StatefulWidget {
   final List<String> images;
@@ -264,7 +280,6 @@ class MenuCarousel extends StatefulWidget {
 }
 
 class _MenuCarouselState extends State<MenuCarousel> {
-  // viewportFraction: 0.85 คือการ์ดตรงกลางจะกว้าง 85% ของจอ ทำให้เห็นการ์ดข้างๆ โผล่มานิดนึง
   late PageController _pageController;
 
   @override
@@ -282,7 +297,7 @@ class _MenuCarouselState extends State<MenuCarousel> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 220, // ความสูงของการ์ดเมนู
+      height: 220,
       child: PageView.builder(
         controller: _pageController,
         itemCount: widget.images.length,
@@ -293,7 +308,6 @@ class _MenuCarouselState extends State<MenuCarousel> {
               double value = 1.0;
               if (_pageController.position.haveDimensions) {
                 value = _pageController.page! - index;
-                // คำนวณความเบลอ/หดตัว (ตรงกลางขนาด 1.0, ด้านข้างขนาด 0.85)
                 value = (1 - (value.abs() * 0.15)).clamp(0.85, 1.0);
               } else {
                 value = index == 0 ? 1.0 : 0.85;

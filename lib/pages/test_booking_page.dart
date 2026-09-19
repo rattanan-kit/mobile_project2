@@ -230,61 +230,1159 @@ class _TestBookingPageState extends State<TestBookingPage> {
               final CollectionReference restaurants = FirebaseFirestore.instance
                   .collection('restaurants');
 
-              final List<Map<String, dynamic>> dummyData = [
-                {
-                  'name': 'ร้านข้าวแกงป้าสม',
-                  'description': 'ข้าวแกงรสเด็ด อร่อยคุ้มค่า ราคาประหยัด',
+              final List<Map<String, dynamic>> dummyData = [ 
 
-                  // --- เพิ่มข้อมูลใหม่ตรงนี้ ---
-                  'address':
-                      '123 ถ.สุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110',
-                  'phoneNumber': '081-234-5678',
-                  'socialLinks': {
-                    'facebook': 'fb.com/pasomcurry',
-                    'instagram': '@pasom_curry',
-                  },
-
-                  // ------------------------
-                  'capacityPerSlot': 20,
-                  'imageUrl': [
-                    "https://images.unsplash.com/photo-1559314809-0d155014e29e",
-                    "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
-                    "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
-                    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
-                    "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",
-                  ],
-                  'lat': 13.7563,
-                  'lng': 100.5018,
-                  'rating': 4.5,
-                  'reviewCount': 120,
-                  'tags': ['thai', 'ของคาว'],
-                },
-                {
-                  'name': 'ซูชิขั้นเทพ (Sushi God)',
-                  'description': 'ซูชิปลาสด ส่งตรงจากญี่ปุ่น',
-
-                  // --- เพิ่มข้อมูลใหม่ตรงนี้ ---
-                  'address': 'ห้างสยามพารากอน ชั้น 4',
-                  'phoneNumber': '02-999-9999',
-                  'socialLinks': {'facebook': 'fb.com/sushigod'},
-
-                  // ------------------------
-                  'capacityPerSlot': 10,
-                  'imageUrl': [
-                    "https://images.unsplash.com/photo-1559314809-0d155014e29e",
-                    "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
-                    "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
-                    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
-                    "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",
-                  ],
-                  'lat': 13.7463,
-                  'lng': 100.5318,
-                  'rating': 4.8,
-                  'reviewCount': 250,
-                  'tags': ['japanese', 'sushi', 'ซูชิ', 'ญี่ปุ่น'],
-                },
-              ];
-
+  {
+    "name": "เจ๊ไฝ (Jay Fai)",
+    "description": "ไข่เจียวปูแน่นๆ และราดหน้าทะเลระดับดาวมิชลิน sss",
+    "address": "327 ถ.มหาไชย แขวงสำราญราษฎร์ เขตพระนคร กรุงเทพมหานคร 10200",
+    "phoneNumber": "02-226-3914",
+    "socialLinks": {
+      "facebook": "fb.com/jayfaibangkok",
+      "instagram": "@jayfaibangkok"
+    },
+    "capacityPerSlot": 30,
+    "imageUrl": [
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkDseCxTHDE5SalW7OJS1UvStioNInlXmnCecHhstkIQ2yv3h__5uxz4l5arpP7AB5pSgPTDsIi8w9IFZxhFyuGyJesqTnWcLOLn4JKV7w8Ry66RPgluVJ4vnICTWElF83kB9ju0zMFuvM=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlINgOUWU9RRf1xt3IZHmQCOeUmGx1ujfQBiHhWBNiXYvgUnjZRAZDX3pf3xacNHqNmcj8EbP6pW-9UlzHcIXfHvgvx1uuu1LSgNQS53Qa6x6EYG8uvSh7qpPQmkGIfcFV19N7OqDJDKWQ=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkUPFJdO3WIjgdWSFLLNqBVljGRgXqWW9NKAQ-ZW4K2ncxTHkYO8PbLj00g3g1hjlz2X8cJpqk2ol7ujUQVklhe-Xurm9dwTTYMpz--3PVztYuABZ_rh2a0_Low0JzXGTTIuriykfSs-8s=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnk69CbJtqvf8QmT53AxFod26E4OjFhJT5iHwjjFbH5oaIzxLIFlNd60fTOnWosWjIZuk_JuitsqGXLc93uI2-g69Za7gKQCMJc_eS58MryHvPirzCIeDpnDpebLe8plE0_WSedpeluWFRk=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkdKncjmQmeNXUnaOHeyJZu31OLYYxwjbGeJPpaj4IZlKU7-SmktGrapt3VRVT6SjYFxp-p5ikI46j1lP8KUPVduo3Pi2l7xTSW7JQi5BOc-Jm6djNLBO0ZrWuQW_7FWkYe7OL0v2LYiZwV=s1360-w1360-h1020-rw"
+    ],
+    "lat": 13.7526,
+    "lng": 100.5048,
+    "rating": 4.6,
+    "reviewCount": 1540,
+    "tags": ["thai", "ของคาว", "michelin" ]
+  },
+  {
+    "name": "ทิพย์สมัย ผัดไทยประตูผี",
+    "description": "ผัดไทยมันกุ้งห่อไข่ระดับตำนาน",
+    "address": "313-315 ถ.มหาไชย แขวงสำราญราษฎร์ เขตพระนคร กรุงเทพมหานคร 10200",
+    "phoneNumber": "02-226-6666",
+    "socialLinks": {
+      "facebook": "fb.com/thipsamaipadthai",
+      "instagram": "@thipsamaipadthai"
+    },
+    "capacityPerSlot": 40,
+    "imageUrl": [
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnffOeo0Wnx8rHw267dPSf7i4lyNj810_r-eiBsQtsUURSXv4oeXAsHbaPsbYaETSkehUJadmXP0r7-g87v6LaWaXH52PlmBmC4qlNgdPe5VUf0Jn8oEtBZVZ4_0J28_rZeOus6=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm-5kzlomIwg34kj25Q8mSRQ6j5WwN1HXkiobLfYECq7n6l77J_Qciq72V8thfpMovZszSnX5cFAfrNr7sdeYJ2K5tHZ0EiQwWOzHl1_U1SdpCg5OYIZaf1l3K__810xVAWUAYK=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmOVe-y5IARmzAEjmLwwhqU4Wwfmt9cx9BKtA5-3ELEpXN4lEVO_kB3QVg4zJg_qOxNaUSugnC2-MfvFCdZAiEOzgRcv36TBkEo559x5uIbzRTikq3czt3zliBk8--oUxupXbrOxMxRNJU=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnRyNWt2BQ-WI1RNiDns5QU7tgZrQv08H-m3JJEzswxnZPR2P4HZHcTCC8NZU1X-2g3mJJ6kBPkc9bKIJwHKNhNxjTT8xlD2KYeb-uDA4V2DawCzEWGGcRBOI0sjAzx9aY9kS7kb3hsA_A=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm154h0CVokBx3VfAQ8hTen84S6YqChL5a_TWQ8buwFaYEoUW08Fwp53gaosEY3BvMi_huZJBGYP-slDwJeTPjDi_iAwv-ximE_iklkZ-byx8u1-E32-wqDKQ4lb2qoJYy6axI=w243-h244-n-k-no-nu"
+    ],
+    "lat": 13.7528,
+    "lng": 100.5047,
+    "rating": 4.2,
+    "reviewCount": 2100,
+    "tags": ["thai", "ของคาว", "street food"]
+  },
+  {
+    "name": "วัฒนาพานิช",
+    "description": "ก๋วยเตี๋ยวเนื้อตุ๋นน้ำซุปเข้มข้น ย่านเอกมัย",
+    "address": "336-338 ซ.เอกมัย ถ.สุขุมวิท 63 แขวงคลองตันเหนือ เขตวัฒนา กรุงเทพมหานคร 10110",
+    "phoneNumber": "02-391-7264",
+    "socialLinks": {
+      "facebook": "fb.com/wattanapanich",
+      "instagram": "@wattanapanich"
+    },
+    "capacityPerSlot": 50,
+    "imageUrl": [
+      "https://img.wongnai.com/p/1920x0/2023/03/19/184cf73a9da443f083ae80cffad02e0f.jpg",
+      "https://www.ryoiireview.com/upload/editor_review/202006/1593148912_dab45cc736e63560c47eb0fff239efb2.jpg",
+      "https://tastybangkok.com/wp-content/uploads/2015/12/DSCF2353-1000x500.jpg",
+      "https://www.ryoiireview.com/upload/editor_review/202006/1593158107_11e86d03bff2f596e49aa251aecfe99d.jpg",
+      "https://f.ptcdn.info/222/014/000/1389155390-IMG5322-o.jpg"
+    ],
+    "lat": 13.7275,
+    "lng": 100.5878,
+    "rating": 4.5,
+    "reviewCount": 950,
+    "tags": ["thai", "ของคาว", "noodle",]
+  },
+  {
+    "name": "รุ่งเรืองต้มยำ (สุขุมวิท 26)",
+    "description": "ก๋วยเตี๋ยวหมูสับต้มยำมะนาวสด",
+    "address": "10/3 ซ.สุขุมวิท 26 แขวงคลองตัน เขตคลองเตย กรุงเทพมหานคร 10110",
+    "phoneNumber": "02-258-6746",
+    "socialLinks": {
+      "facebook": "fb.com/rungruangporknoodle",
+      "instagram": "@rungruangtomyam"
+    },
+    "capacityPerSlot": 35,
+    "imageUrl": [
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWllHZbfKJVQnwwJ3QXwIW2oFLGZppWUxNu-yiRjj0YorxZcNbMHArjxHqH6v55SrJuk2PY_9T765jbdD_xqyYaFdJh46-SIDuQfb54iP0jIf4sPZzeCelI0eNN8zO6SW-LLRU2Yvw=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmsMZc484Idpm-UlIeKh7ULmpRTbjeDgm-8YWryNk5ZvxEym8cMFZv0Y2kh04OrxTnuGg9kSK_Xt6_fZXgMy4MKNjqg4vqmsr0dbzAwiz0EzGFwd8JTBymn0q3Yo4T4ZgSuITF3=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkNx75VBd2-M0pRYxY7IbylCH_EEH1QbYqOv-BmxyTaRU2rw0WKG3UzjsgAAS2qHKWzsgJJIlY2SR64rjL1GLadDj7EUfqt57ZRPjddtmR1M99MDVTwBLrt7GEBJMEWd5ric4F7An526kLK=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkAOmQWiqvqKOCQbrI-Conh3ibcnPIp4Cav5eTzu_oPDK3fmW8IAPOH6bmMfDHkdsGaKyK3Iefnke3HbOdbxhYJRIjH9fPA0Ukt1kSZveszGXYEs3lM0kt7hvV6TgmNN0kLdANUQFISR8c=s1360-w1360-h1020-rw",
+      "https://lh3.googleusercontent.com/grass-cs/ACvplmOWBw5qHrcszlyp4zsBCaldvOMQjiptTOENxjINSAOFXA3kQFSCMSElY9MhM_lOYBSGIEhbh-iPRXDTASftXrRMIqGkaEBwfLdEXIDa-iBDLyU-LKxvtcwtXIqA388MocetQqs5=s1360-w1360-h1020-rw"
+    ],
+    "lat": 13.7251,
+    "lng": 100.5701,
+    "rating": 4.4,
+    "reviewCount": 1300,
+    "tags": ["thai", "ของคาว", "noodle"]
+  },
+  {
+    "name": "โกอ่างข้าวมันไก่ประตูน้ำ",
+    "description": "ข้าวมันไก่ฉ่ำๆ ตำนานเสื้อชมพู sss",
+    "address": "960 ถ.เพชรบุรี แขวงมักกะสัน เขตราชเทวี กรุงเทพมหานคร 10400",
+    "phoneNumber": "02-252-8772",
+    "socialLinks": {
+      "facebook": "fb.com/GoAngPratunamChickenRice",
+      "instagram": "@goangpratunam"
+    },
+    "capacityPerSlot": 40,
+    "imageUrl": [
+      "https://img.wongnai.com/p/1920x0/2026/03/27/5aa4a9cc38c0445aa7f475ca7820ac3e.jpg",
+      "https://www.ryoiireview.com/upload/article/202210/1666765295_112a7618e114a514dc0d844404550286.jpg",
+      "https://www.ryoiireview.com/upload/article/202110/1634545121_45b0d4bbbc290731c10484d830edc9c7.jpg",
+      "https://www.ryoiireview.com/upload/article/202110/1634545121_41ac98c7c8e90d540f68d71ee4808ff9.jpg",
+      "https://www.ryoiireview.com/upload/article/202110/1634545121_929c485afe563aaf3ce5f39e42bfc01c.jpg"
+    ],
+    "lat": 13.7497,
+    "lng": 100.5422,
+    "rating": 4.3,
+    "reviewCount": 1850,
+    "tags": ["thai", "ของคาว", "street food"]
+  },
+  {
+    "name": "นายไซ",
+    "description": "ข้าวหมูกรอบกรอบสนั่น ย่านประชาชื่น",
+    "address": "1059 ถ.ประชาชื่น แขวงวงศ์สว่าง เขตบางซื่อ กรุงเทพมหานคร 10800",
+    "phoneNumber": "081-845-6789",
+    "socialLinks": {
+      "facebook": "fb.com/nai.sai.moo.krob",
+      "instagram": "@naisai_mookrob"
+    },
+    "capacityPerSlot": 20,
+    "imageUrl": [
+      "https://storage.googleapis.com/atime-media-prod/editor/content/ae43797b-129b-49a1-802f-b32d66a40ac7.jpeg",
+      "https://img.wongnai.com/p/1920x0/2017/03/20/18b38a0ce74242be92f625f6f613c326.jpg",
+      "https://img.wongnai.com/p/400x400/2017/02/13/38622fdc296c44d8b3e5e87f5260e765.jpg",
+      "https://img.wongnai.com/p/1600x0/2019/01/23/176641cc711d4f4fae549745c14393d6.jpg",
+      "https://img.wongnai.com/p/1920x0/2019/04/17/8823c5da23074bf7ac836fae94842426.jpg"
+    ],
+    "lat": 13.8242,
+    "lng": 100.5367,
+    "rating": 4.6,
+    "reviewCount": 780,
+    "tags": ["thai", "ของคาว", "street food"]
+  },
+  {
+    "name": "ก๋วยจั๊บนายเอ็ก",
+    "description": "ก๋วยจั๊บน้ำใสพริกไทยร้อนผ่าว ย่านเยาวราช",
+    "address": "442 ซ.เยาวราช 9 แขวงสัมพันธวงศ์ เขตสัมพันธวงศ์ กรุงเทพมหานคร 10100",
+    "phoneNumber": "02-226-4651",
+    "socialLinks": {
+      "facebook": "fb.com/NaiEkRollNoodle",
+      "instagram": "@naiekrollnoodle"
+    },
+    "capacityPerSlot": 30,
+    "imageUrl": [
+      "https://img.wongnai.com/p/1920x0/2019/04/20/e17c5a0f713c413c8cfb41f432f340a0.jpg",
+      "https://img.wongnai.com/p/1920x0/2022/04/24/2abe0bd00b8c438fb2700be5e4d07ff3.jpg",
+      "https://img.wongnai.com/p/1920x0/2015/05/11/d04a349b64154c7380d499fb98a40ae7.jpg",
+      "https://img.wongnai.com/p/1920x0/2019/07/17/cd50409eb61c4b8ebb804e3596d8ee8f.jpg",
+      "https://img.wongnai.com/p/1920x0/2021/12/17/8c95f81364fd4a15954d9e604faa113e.jpg"
+    ],
+    "lat": 13.7405,
+    "lng": 100.5106,
+    "rating": 4.3,
+    "reviewCount": 1600,
+    "tags": ["thai", "ของคาว", "street food"]
+  },
+  {
+    "name": "เผ็ด เผ็ด (Phed Phed)",
+    "description": "อาหารอีสานรสจัดจ้านและส้มตำวัตถุดิบพื้นบ้าน",
+    "address": "ซ.พหลโยธิน 8 แขวงสามเสนใน เขตพญาไท กรุงเทพมหานคร 10400",
+    "phoneNumber": "098-284-9599",
+    "socialLinks": {
+      "facebook": "fb.com/PhedPhedFood",
+      "instagram": "@phedphed_food"
+    },
+    "capacityPerSlot": 25,
+    "imageUrl": [
+      "https://img.wongnai.com/p/1920x0/2017/10/10/9c947b76ee984d7e99aaa9f672d119a4.jpg",
+      "https://img.wongnai.com/p/1920x0/2017/10/10/46e0eb9dde3a4b94ab72aea4c9dabd4c.jpg",
+      "https://img.wongnai.com/p/1920x0/2017/10/10/a7a587eb40e04b06926494140e210d70.jpg",
+      "https://img.wongnai.com/p/1920x0/2017/10/10/0f44af1d33a14004b41c7403b4e3bf36.jpg",
+      "https://img.wongnai.com/p/1920x0/2017/10/10/ae69f5e04ea147a4aa2e7149d9a9f075.jpg"
+    ],
+    "lat": 13.7825,
+    "lng": 100.5451,
+    "rating": 4.7,
+    "reviewCount": 850,
+    "tags": ["thai", "isan", "ของคาว"]
+  },
+  {
+    "name": "โจ๊กสามย่าน",
+    "description": "โจ๊กหมูเด้งชิ้นโตเนื้อเนียน sss",
+    "address": "245 ซ.จุฬาลงกรณ์ 11 แขวงวังใหม่ เขตปทุมวัน กรุงเทพมหานคร 10330",
+    "phoneNumber": "02-216-4809",
+    "socialLinks": {
+      "facebook": "fb.com/JokSamYan",
+      "instagram": "@joksamyan"
+    },
+    "capacityPerSlot": 20,
+    "imageUrl": [
+      "https://img.wongnai.com/p/1920x0/2020/06/25/8d35251f79814a338745d2c0342c021d.jpg",
+      "https://img.wongnai.com/p/400x400/2022/07/19/83137c367fef4cb9a4e389ec1cc825f3.jpg",
+      "https://img.wongnai.com/p/400x400/2018/07/15/2ac13660f153429b82bf02a30ba55a76.jpg",
+      "https://img.wongnai.com/p/400x400/2019/03/02/082cd2e67fc9454ea2afe0f71af34f53.jpg",
+      "https://img.wongnai.com/p/400x400/2022/07/19/e9eb9868207d4710bc8a9282655007f4.jpg"
+    ],
+    "lat": 13.7381,
+    "lng": 100.5284,
+    "rating": 4.5,
+    "reviewCount": 920,
+    "tags": ["thai", "ของคาว", "street food"]
+  },
+  {
+    "name": "ก๋วยเตี๋ยวเพ็ญพริกเผ็ด",
+    "description": "ก๋วยเตี๋ยวหมู/เนื้อน้ำแดงรสเด็ด เอกลักษณ์เมืองเพชร",
+    "address": "ถ.หน้าพระลาน ต.คลองกระแซง อ.เมือง จ.เพชรบุรี 76000",
+    "phoneNumber": "032-412-140",
+    "socialLinks": {
+      "facebook": "fb.com/penprikphed",
+      "instagram": "@penprikphed"
+    },
+    "capacityPerSlot": 20,
+    "imageUrl": [
+      "https://img.wongnai.com/p/1920x0/2018/08/15/a84b2b2e69cd4ff3bb6903f27601e9ca.jpg",
+      "https://img.wongnai.com/p/400x400/2020/01/30/f2a6f77abb8e4b21bd5ccff09bffffbb.jpg",
+      "https://img.wongnai.com/p/400x400/2023/08/14/cc7ad47c5b84404682d35e9a031bf4c7.jpg",
+      "https://img.wongnai.com/p/400x400/2016/12/26/ade52a70c504416d9c9bfda56972d75c.jpg",
+      "https://img.wongnai.com/p/400x400/2024/01/23/bc2c02d9a82a4799807702fabac97e19.jpg"
+    ],
+    "lat": 13.1118,
+    "lng": 99.9453,
+    "rating": 4.4,
+    "reviewCount": 450,
+    "tags": ["thai", "ของคาว", "noodle"]
+  },
+  {
+    "name": "ศรณ์ (Sorn)",
+    "description": "อาหารใต้สไตล์ Fine Dining 2 ดาวมิชลิน",
+    "address": "56 ซ.สุขุมวิท 26 แขวงคลองตัน เขตคลองเตย กรุงเทพมหานคร 10110",
+    "phoneNumber": "099-081-1119",
+    "socialLinks": {
+      "facebook": "fb.com/SornFineSouthernCuisine",
+      "instagram": "@sornfinesouthern"
+    },
+    "capacityPerSlot": 15,
+    "imageUrl": [
+      "https://img.wongnai.com/p/1920x0/2021/09/29/6860a1ecc1c74f83ad849d4b83444fce.jpg",
+      "https://img.wongnai.com/p/1920x0/2021/03/17/5f971ceaff78422d98b9a5f703153bf3.jpg",
+      "https://img.wongnai.com/p/1920x0/2021/03/17/c252eeff167b488a8a9746b77361d170.jpg",
+      "https://img.wongnai.com/p/1920x0/2021/03/17/b976ef81ce4e406c847c8f1ebb464dc1.jpg",
+      "https://img.wongnai.com/p/1920x0/2019/09/19/86354f9db84247a4bf883c266db9fa77.jpg"
+    ],
+    "lat": 13.7275,
+    "lng": 100.5694,
+    "rating": 4.9,
+    "reviewCount": 420,
+    "tags": ["thai", "ของคาว", "fine dining", "michelin"]
+  },
+  {
+    "name": "ครัวอัปษร",
+    "description": "อาหารไทยรสจัดจ้าน เมนูเด็ดไข่ฟูปูและแกงเหลือง",
+    "address": "169 ถ.ดินสอ แขวงบวรนิเวศ เขตพระนคร กรุงเทพมหานคร 10200",
+    "phoneNumber": "02-685-4531",
+    "socialLinks": {
+      "facebook": "fb.com/kruaapsorn",
+      "instagram": "@kruaapsorn"
+    },
+    "capacityPerSlot": 45,
+    "imageUrl": [
+      "https://img.wongnai.com/p/1920x0/2018/05/15/0fc97ac1dbf542e099089bbc1c102b5d.jpg",
+      "https://img.wongnai.com/p/1920x0/2021/01/14/8802cf4317cb4a529525e14feedc6f85.jpg",
+      "https://img.wongnai.com/p/1920x0/2018/05/25/d3b872beddef4de8b6985551acd55e06.jpg",
+      "https://img.wongnai.com/p/1920x0/2018/02/13/98df2e6e15e24239bc26fc63b7e0c4ae.jpg",
+      "https://img.wongnai.com/p/1920x0/2021/07/15/02c133d73d824fadabbde939738d3ed6.jpg"
+    ],
+    "lat": 13.7547,
+    "lng": 100.5059,
+    "rating": 4.6,
+    "reviewCount": 1100,
+    "tags": ["thai", "ของคาว"]
+  },
+  {
+    "name": "สุพรรณิการ์ (Supanniga Eating Room)",
+    "description": "อาหารไทยตราด-อีสานสูตรคุณยาย",
+    "address": "160/11 ซ.สุขุมวิท 55 แขวงคลองตันเหนือ เขตวัฒนา กรุงเทพมหานคร 10110",
+    "phoneNumber": "02-714-7508",
+    "socialLinks": {
+      "facebook": "fb.com/SupannigaEatingRoom",
+      "instagram": "@supannigagroup"
+    },
+    "capacityPerSlot": 35,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7276,
+    "lng": 100.5794,
+    "rating": 4.5,
+    "reviewCount": 890,
+    "tags": ["thai", "ของคาว"]
+  },
+  {
+    "name": "ศรีตราด (Sri Trat)",
+    "description": "อาหารไทยตะวันออกรสเข้มข้น บรรยากาศดี",
+    "address": "90 ซ.สุขุมวิท 33 แขวงคลองตันเหนือ เขตวัฒนา กรุงเทพมหานคร 10110",
+    "phoneNumber": "02-088-0968",
+    "socialLinks": {
+      "facebook": "fb.com/sritrat",
+      "instagram": "@sritrat"
+    },
+    "capacityPerSlot": 40,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7346,
+    "lng": 100.5721,
+    "rating": 4.6,
+    "reviewCount": 750,
+    "tags": ["thai", "ของคาว"]
+  },
+  {
+    "name": "เขียวไก่กา",
+    "description": "อาหารไทยพื้นบ้านวัตถุดิบคุณภาพ",
+    "address": "33 ถ.นาคนิวาส แขวงลาดพร้าว เขตลาดพร้าว กรุงเทพมหานคร 10230",
+    "phoneNumber": "02-227-0685",
+    "socialLinks": {
+      "facebook": "fb.com/kiewkaika",
+      "instagram": "@kiewkaika"
+    },
+    "capacityPerSlot": 45,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.8052,
+    "lng": 100.6053,
+    "rating": 4.5,
+    "reviewCount": 620,
+    "tags": ["thai", "ของคาว"]
+  },
+  {
+    "name": "พวงเพชร",
+    "description": "ร้านอาหารไทย-พื้นบ้านเมืองเพชร เมนูต้มส้มและแกงป่า",
+    "address": "389 ถ.เพชรเกษม ต.บ้านหม้อ อ.เมือง จ.เพชรบุรี 76000",
+    "phoneNumber": "032-411-385",
+    "socialLinks": {
+      "facebook": "fb.com/PuangPechRestaurant",
+      "instagram": "@puangpech"
+    },
+    "capacityPerSlot": 50,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.1095,
+    "lng": 99.9442,
+    "rating": 4.4,
+    "reviewCount": 510,
+    "tags": ["thai", "ของคาว", "local"]
+  },
+  {
+    "name": "สังเวียนซีฟู้ด",
+    "description": "ร้านซีฟู้ดริมหาด จานใหญ่ วัตถุดิบสดใหม่",
+    "address": "ริมหาดชะอำเหนือ ต.ชะอำ อ.ชะอำ จ.เพชรบุรี 76120",
+    "phoneNumber": "032-472-280",
+    "socialLinks": {
+      "facebook": "fb.com/SangweanSeafood",
+      "instagram": "@sangweanseafood"
+    },
+    "capacityPerSlot": 80,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 12.8021,
+    "lng": 99.9837,
+    "rating": 4.5,
+    "reviewCount": 1250,
+    "tags": ["seafood", "ของคาว"]
+  },
+  {
+    "name": "แหลมเจริญซีฟู้ด",
+    "description": "ต้นตำรับปลากะพงทอดน้ำปลา",
+    "address": "ถ.เลียบชายฝั่ง ต.ปากน้ำ อ.เมือง จ.ระยอง 21000",
+    "phoneNumber": "038-940-094",
+    "socialLinks": {
+      "facebook": "fb.com/LaemCharoenSeafood",
+      "instagram": "@laemcharoenseafood"
+    },
+    "capacityPerSlot": 100,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 12.6732,
+    "lng": 101.2721,
+    "rating": 4.6,
+    "reviewCount": 3000,
+    "tags": ["seafood", "ของคาว"]
+  },
+  {
+    "name": "อบอร่อย",
+    "description": "กุ้งอบวุ้นเส้นและอาหารทะเลสด ย่านทาวน์อินทาวน์",
+    "address": "1329/53 ซ.ลาดพร้าว 94 (ปัญจมิตร) ถ.อินทราภรณ์ เขตวังทองหลาง กรุงเทพมหานคร 10310",
+    "phoneNumber": "02-559-0628",
+    "socialLinks": {
+      "facebook": "fb.com/obaroi.townintown",
+      "instagram": "@obaroi"
+    },
+    "capacityPerSlot": 60,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7699,
+    "lng": 100.6122,
+    "rating": 4.5,
+    "reviewCount": 1800,
+    "tags": ["seafood", "ของคาว"]
+  },
+  {
+    "name": "เรือนสายน้ำ",
+    "description": "กุ้งแม่น้ำเผาตัวโต มันกุ้งเยิ้มริมแม่น้ำเจ้าพระยา",
+    "address": "26/1 หมู่ 4 ต.เกาะเกิด อ.บางปะอิน จ.พระนครศรีอยุธยา 13160",
+    "phoneNumber": "093-559-2895",
+    "socialLinks": {
+      "facebook": "fb.com/ruensainam",
+      "instagram": "@ruensainam"
+    },
+    "capacityPerSlot": 40,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 14.3411,
+    "lng": 100.5732,
+    "rating": 4.7,
+    "reviewCount": 940,
+    "tags": ["seafood", "thai", "ของคาว"]
+  },
+  {
+    "name": "ระย้า (Raya)",
+    "description": "แกงเนื้อปูใบชะพลูตำนานเมืองภูเก็ต",
+    "address": "48 ถ.ดีบุก ต.ตลาดใหญ่ อ.เมือง จ.ภูเก็ต 83000",
+    "phoneNumber": "076-218-155",
+    "socialLinks": {
+      "facebook": "fb.com/therayaphuket",
+      "instagram": "@rayaphuket"
+    },
+    "capacityPerSlot": 50,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 7.8862,
+    "lng": 98.3904,
+    "rating": 4.6,
+    "reviewCount": 1500,
+    "tags": ["thai", "ของคาว", "local"]
+  },
+  {
+    "name": "ตู้กับข้าว",
+    "description": "อาหารพื้นเมืองภูเก็ตในอาคารชิโน-โปรตุกีส",
+    "address": "8 ถ.พังงา ต.ตลาดใหญ่ อ.เมือง จ.ภูเก็ต 83000",
+    "phoneNumber": "076-608-888",
+    "socialLinks": {
+      "facebook": "fb.com/tukabkhao",
+      "instagram": "@tukabkhao"
+    },
+    "capacityPerSlot": 40,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 7.8845,
+    "lng": 98.3895,
+    "rating": 4.7,
+    "reviewCount": 2200,
+    "tags": ["thai", "ของคาว", "local"]
+  },
+  {
+    "name": "โกเบ๊นซ์ ข้าวต้มบาทเดียว",
+    "description": "ข้าวต้มแห้งหมูกรอบชื่อดัง",
+    "address": "163 ถ.กระบี่ ต.ตลาดเหนือ อ.เมือง จ.ภูเก็ต 83000",
+    "phoneNumber": "084-053-3456",
+    "socialLinks": {
+      "facebook": "fb.com/gobenzphuket",
+      "instagram": "@gobenzphuket"
+    },
+    "capacityPerSlot": 30,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 7.8885,
+    "lng": 98.3883,
+    "rating": 4.6,
+    "reviewCount": 2500,
+    "tags": ["thai", "ของคาว", "street food"]
+  },
+  {
+    "name": "ต๋องเต็มโต๊ะ",
+    "description": "อาหารเหนือพื้นเมืองย่านนิมมานฯ",
+    "address": "11 ซ.นิมมานเหมินท์ 13 ต.สุเทพ อ.เมือง จ.เชียงใหม่ 50200",
+    "phoneNumber": "053-894-701",
+    "socialLinks": {
+      "facebook": "fb.com/TongTemToh",
+      "instagram": "@tongtemtoh"
+    },
+    "capacityPerSlot": 40,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 18.7963,
+    "lng": 98.9663,
+    "rating": 4.4,
+    "reviewCount": 3100,
+    "tags": ["thai", "ของคาว", "local"]
+  },
+  {
+    "name": "ข้าวซอยแม่สาย",
+    "description": "ข้าวซอยเนื้อ-ไก่ รสเข้มข้นดั้งเดิม",
+    "address": "29/1 ซ.ราชพฤกษ์ ถ.ห้วยแก้ว ต.ช้างเผือก อ.เมือง จ.เชียงใหม่ 50300",
+    "phoneNumber": "053-213-284",
+    "socialLinks": {
+      "facebook": "fb.com/khaosoimaesai",
+      "instagram": "@khaosoimaesai"
+    },
+    "capacityPerSlot": 20,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 18.8023,
+    "lng": 98.9765,
+    "rating": 4.5,
+    "reviewCount": 1100,
+    "tags": ["thai", "ของคาว", "noodle"]
+  },
+  {
+    "name": "เฮือนเพ็ญ",
+    "description": "ขันโตกและอาหารเหนือย่านคูเมือง",
+    "address": "112 ถ.ราชมรรคา ต.พระสิงห์ อ.เมือง จ.เชียงใหม่ 50200",
+    "phoneNumber": "053-814-548",
+    "socialLinks": {
+      "facebook": "fb.com/huenpen",
+      "instagram": "@huenpen"
+    },
+    "capacityPerSlot": 60,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 18.7845,
+    "lng": 98.9845,
+    "rating": 4.3,
+    "reviewCount": 1800,
+    "tags": ["thai", "ของคาว", "local"]
+  },
+  {
+    "name": "ครัวกรรณิการ์",
+    "description": "ขนมจีนน้ำยาปูกับไก่ทอดสูตรเด็ดเฉพาะตัว",
+    "address": "190/7 ซ.ชูพงษ์ ถ.เพชรเกษม อ.หัวหิน จ.ประจวบคีรีขันธ์ 77110",
+    "phoneNumber": "032-512-069",
+    "socialLinks": {
+      "facebook": "fb.com/kruakannikar",
+      "instagram": "@kruakannikar"
+    },
+    "capacityPerSlot": 30,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 12.5694,
+    "lng": 99.9576,
+    "rating": 4.5,
+    "reviewCount": 850,
+    "tags": ["thai", "ของคาว", "local"]
+  },
+  {
+    "name": "ไก่ย่างวิเชียรบุรี (ตาแป๊ะ)",
+    "description": "ไก่ย่างหนังกรอบน้ำจิ้มรสเด็ด",
+    "address": "ริม ถ.สระบุรี-หล่มสัก อ.วิเชียรบุรี จ.เพชรบูรณ์ 67130",
+    "phoneNumber": "056-928-026",
+    "socialLinks": {
+      "facebook": "fb.com/kaiyangvichienburi",
+      "instagram": "@kaiyangvichienburi"
+    },
+    "capacityPerSlot": 40,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 15.6515,
+    "lng": 101.0558,
+    "rating": 4.4,
+    "reviewCount": 600,
+    "tags": ["thai", "isan", "ของคาว"]
+  },
+  {
+    "name": "ลาบเป็ดอุดร",
+    "description": "ลาบเป็ดรสแซ่บและอาหารอีสานดั้งเดิม",
+    "address": "ซ.รามคำแหง 14 ถ.รามคำแหง แขวงหัวหมาก เขตบางกะปิ กรุงเทพมหานคร 10240",
+    "phoneNumber": "02-314-2576",
+    "socialLinks": {
+      "facebook": "fb.com/larbpedudon",
+      "instagram": "@larbpedudon"
+    },
+    "capacityPerSlot": 45,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 17.4138,
+    "lng": 102.7958,
+    "rating": 4.3,
+    "reviewCount": 720,
+    "tags": ["thai", "isan", "ของคาว"]
+  },
+  {
+    "name": "ก๋วยเตี๋ยวเรือป้าเล็ก",
+    "description": "ก๋วยเตี๋ยวเรือน้ำตกเข้มข้นหน้าวัดมหาธาตุ",
+    "address": "ถ.มหาราช ต.ท่าวาสุกรี อ.พระนครศรีอยุธยา จ.พระนครศรีอยุธยา 13000",
+    "phoneNumber": "081-432-6997",
+    "socialLinks": {
+      "facebook": "fb.com/palekayutthaya",
+      "instagram": "@paleknoodle"
+    },
+    "capacityPerSlot": 20,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 14.3567,
+    "lng": 100.5678,
+    "rating": 4.5,
+    "reviewCount": 980,
+    "tags": ["thai", "ของคาว", "noodle"]
+  },
+  {
+    "name": "Le Du (ฤดู)",
+    "description": "อาหารไทยร่วมสมัยสไตล์ Modern Dining",
+    "address": "399/3 ซ.สีลม 7 แขวงสีลม เขตบางรัก กรุงเทพมหานคร 10500",
+    "phoneNumber": "092-919-9969",
+    "socialLinks": {
+      "facebook": "fb.com/LeDuBkk",
+      "instagram": "@ledubkk"
+    },
+    "capacityPerSlot": 20,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7237,
+    "lng": 100.5284,
+    "rating": 4.8,
+    "reviewCount": 450,
+    "tags": ["thai", "modern", "ของคาว", "michelin"]
+  },
+  {
+    "name": "Peppina",
+    "description": "พิซซ่าสไตล์นาโปลีแท้ อบเตาถ่าน",
+    "address": "27/1 ซ.สุขุมวิท 33 แขวงคลองตันเหนือ เขตวัฒนา กรุงเทพมหานคร 10110",
+    "phoneNumber": "02-119-7677",
+    "socialLinks": {
+      "facebook": "fb.com/peppinapizza",
+      "instagram": "@peppinabkk"
+    },
+    "capacityPerSlot": 45,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7383,
+    "lng": 100.5694,
+    "rating": 4.5,
+    "reviewCount": 1150,
+    "tags": ["italian", "ของคาว", "pizza"]
+  },
+  {
+    "name": "Isao",
+    "description": "ซูชิฟิวชั่นสไตล์ญี่ปุ่น-อเมริกัน เมนูเด็ด Jackie Roll",
+    "address": "5 ซ.สุขุมวิท 31 แขวงคลองตันเหนือ เขตวัฒนา กรุงเทพมหานคร 10110",
+    "phoneNumber": "02-258-0645",
+    "socialLinks": {
+      "facebook": "fb.com/isaobkk",
+      "instagram": "@isaobkk"
+    },
+    "capacityPerSlot": 25,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7335,
+    "lng": 100.5709,
+    "rating": 4.6,
+    "reviewCount": 1250,
+    "tags": ["japanese", "fusion", "ของคาว"]
+  },
+  {
+    "name": "Sushi Masato",
+    "description": "โอมากาเสะพรีเมียมโดยเชฟชาวญี่ปุ่น",
+    "address": "3/22 ซ.สวัสดี 1 ถ.สุขุมวิท 31 เขตวัฒนา กรุงเทพมหานคร 10110",
+    "phoneNumber": "02-040-0015",
+    "socialLinks": {
+      "facebook": "fb.com/sushimasato",
+      "instagram": "@sushimasato"
+    },
+    "capacityPerSlot": 10,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7345,
+    "lng": 100.5656,
+    "rating": 4.8,
+    "reviewCount": 340,
+    "tags": ["japanese", "omakase", "ของคาว"]
+  },
+  {
+    "name": "Daniel Thaiger",
+    "description": "เบอร์เกอร์เนื้อบดฉ่ำๆ สไตล์อเมริกัน",
+    "address": "ซ.สุขุมวิท 11 แขวงคลองเตยเหนือ เขตวัฒนา กรุงเทพมหานคร 10110",
+    "phoneNumber": "084-549-0995",
+    "socialLinks": {
+      "facebook": "fb.com/DanielThaiger",
+      "instagram": "@danielthaiger"
+    },
+    "capacityPerSlot": 15,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7431,
+    "lng": 100.5552,
+    "rating": 4.6,
+    "reviewCount": 890,
+    "tags": ["american", "burger", "ของคาว"]
+  },
+  {
+    "name": "El Gaucho",
+    "description": "สเต๊กเนื้อเกรดพรีเมียมสไตล์อาร์เจนตินา",
+    "address": "8/4-7 ซ.สุขุมวิท 19 แขวงคลองเตยเหนือ เขตวัฒนา กรุงเทพมหานคร 10110",
+    "phoneNumber": "02-255-2864",
+    "socialLinks": {
+      "facebook": "fb.com/ElGauchoThailand",
+      "instagram": "@elgaucho_steakhouse"
+    },
+    "capacityPerSlot": 50,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7385,
+    "lng": 100.5601,
+    "rating": 4.5,
+    "reviewCount": 1200,
+    "tags": ["steak", "argentinian", "ของคาว"]
+  },
+  {
+    "name": "Cocotte Farm Roast & Winery",
+    "description": "ร้านสเต๊กและอาหารฝรั่งเศสสไตล์บิสโทร",
+    "address": "39 บูเลอวาร์ด ซ.สุขุมวิท 39 แขวงคลองตันเหนือ เขตวัฒนา กรุงเทพมหานคร 10110",
+    "phoneNumber": "092-664-6777",
+    "socialLinks": {
+      "facebook": "fb.com/cocottebkk",
+      "instagram": "@cocottebkk"
+    },
+    "capacityPerSlot": 60,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7351,
+    "lng": 100.5731,
+    "rating": 4.6,
+    "reviewCount": 1400,
+    "tags": ["french", "steak", "ของคาว"]
+  },
+  {
+    "name": "Zanotti",
+    "description": "ร้านอาหารอิตาเลียนระดับตำนานย่านสีลม",
+    "address": "21/2 ซ.ศาลาแดง 1 ถ.สีลม แขวงสีลม เขตบางรัก กรุงเทพมหานคร 10500",
+    "phoneNumber": "02-236-8802",
+    "socialLinks": {
+      "facebook": "fb.com/ZanottiIlRistoranteItaliano",
+      "instagram": "@zanottibangkok"
+    },
+    "capacityPerSlot": 50,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7272,
+    "lng": 100.5361,
+    "rating": 4.5,
+    "reviewCount": 850,
+    "tags": ["italian", "ของคาว"]
+  },
+  {
+    "name": "เนื้อแท้ (Nuathea)",
+    "description": "สารพัดเมนูเนื้อวัวรสเข้มข้น",
+    "address": "หนองจอก ถ.มิตรไมตรี แขวงหนองจอก เขตหนองจอก กรุงเทพมหานคร 10530",
+    "phoneNumber": "02-026-6666",
+    "socialLinks": {
+      "facebook": "fb.com/Nuathea",
+      "instagram": "@nuathea"
+    },
+    "capacityPerSlot": 40,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.8402,
+    "lng": 100.6781,
+    "rating": 4.4,
+    "reviewCount": 980,
+    "tags": ["thai", "beef", "ของคาว"]
+  },
+  {
+    "name": "Greyhound Café",
+    "description": "อาหารสไตล์เอเชียน-สตรีทฟิวชั่นร่วมสมัย",
+    "address": "ชั้น 1 สยามเซ็นเตอร์ ถ.พระราม 1 เขตปทุมวัน กรุงเทพมหานคร 10330",
+    "phoneNumber": "02-251-4907",
+    "socialLinks": {
+      "facebook": "fb.com/GreyhoundCafe",
+      "instagram": "@greyhoundcafe"
+    },
+    "capacityPerSlot": 60,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7314,
+    "lng": 100.5694,
+    "rating": 4.3,
+    "reviewCount": 1800,
+    "tags": ["fusion", "cafe", "ของคาว"]
+  },
+  {
+    "name": "อาฟเตอร์ยู (After You)",
+    "description": "คากิโกริ ชิบูย่าฮันนี่โทสต์ยอดฮิต",
+    "address": "ชั้น G สยามพารากอน ถ.พระราม 1 เขตปทุมวัน กรุงเทพมหานคร 10330",
+    "phoneNumber": "02-610-7659",
+    "socialLinks": {
+      "facebook": "fb.com/afteryoucafe",
+      "instagram": "@afteryoudessertcafe"
+    },
+    "capacityPerSlot": 40,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7291,
+    "lng": 100.5312,
+    "rating": 4.7,
+    "reviewCount": 3500,
+    "tags": ["dessert", "cafe", "ของหวาน"]
+  },
+  {
+    "name": "มนต์ นมสด",
+    "description": "ขนมปังปิ้งนมหอมและนมสดหน้าลานคนเมือง",
+    "address": "160/1-3 ถ.ดินสอ แขวงเสาชิงช้า เขตพระนคร กรุงเทพมหานคร 10200",
+    "phoneNumber": "02-224-1147",
+    "socialLinks": {
+      "facebook": "fb.com/montnomsod.bkk",
+      "instagram": "@montnomsod"
+    },
+    "capacityPerSlot": 30,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7538,
+    "lng": 100.5015,
+    "rating": 4.5,
+    "reviewCount": 2800,
+    "tags": ["dessert", "cafe", "ของหวาน"]
+  },
+  {
+    "name": "สิงคโปร์โภชนา (ลอดช่องสิงคโปร์)",
+    "description": "ลอดช่องเส้นนุ่มน้ำกะทิหอมหวาน ย่านสามแยกเจริญกรุง",
+    "address": "680-682 ถ.เจริญกรุง แขวงสัมพันธวงศ์ เขตสัมพันธวงศ์ กรุงเทพมหานคร 10100",
+    "phoneNumber": "02-221-5794",
+    "socialLinks": {
+      "facebook": "fb.com/lodchongsingapore",
+      "instagram": "@lodchongsingapore"
+    },
+    "capacityPerSlot": 20,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7385,
+    "lng": 100.5108,
+    "rating": 4.4,
+    "reviewCount": 1200,
+    "tags": ["thai", "dessert", "ของหวาน"]
+  },
+  {
+    "name": "Factory Coffee",
+    "description": "Specialty Coffee ดีกรีแชมป์บาริสต้า",
+    "address": "49 ถ.พญาไท แขวงถนนพญาไท เขตราชเทวี กรุงเทพมหานคร 10400",
+    "phoneNumber": "080-402-2222",
+    "socialLinks": {
+      "facebook": "fb.com/factorybkk",
+      "instagram": "@factorybkk"
+    },
+    "capacityPerSlot": 25,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7571,
+    "lng": 100.5372,
+    "rating": 4.8,
+    "reviewCount": 1650,
+    "tags": ["coffee", "cafe", "เครื่องดื่ม"]
+  },
+  {
+    "name": "Roots",
+    "description": "กาแฟคราฟต์เมล็ดไทยคุณภาพระดับพรีเมียม",
+    "address": "33/31 ซ.สาทร 11 แขวงยานนาวา เขตสาทร กรุงเทพมหานคร 10120",
+    "phoneNumber": "097-058-6846",
+    "socialLinks": {
+      "facebook": "fb.com/RootsBkk",
+      "instagram": "@rootsbkk"
+    },
+    "capacityPerSlot": 30,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7332,
+    "lng": 100.5824,
+    "rating": 4.7,
+    "reviewCount": 980,
+    "tags": ["coffee", "cafe", "เครื่องดื่ม"]
+  },
+  {
+    "name": "ลอดช่องน้ำกะทิป้าปรางค์",
+    "description": "ขนมหวานน้ำกะทิลอดช่องเมืองเพชรแท้",
+    "address": "ริม ถ.คลองกระแซง ต.คลองกระแซง อ.เมือง จ.เพชรบุรี 76000",
+    "phoneNumber": "032-425-666",
+    "socialLinks": {
+      "facebook": "fb.com/papranglodchong",
+      "instagram": "@paprang_phetchaburi"
+    },
+    "capacityPerSlot": 15,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.1123,
+    "lng": 99.9458,
+    "rating": 4.6,
+    "reviewCount": 420,
+    "tags": ["thai", "dessert", "ของหวาน", "local"]
+  },
+  {
+    "name": "แม่กิมลั้ง",
+    "description": "ขนมหม้อแกงและขนมไทยเมืองเพชรของฝากชื่อดัง",
+    "address": "ริม ถ.เพชรเกษม ต.ท่ายาง อ.ท่ายาง จ.เพชรบุรี 76130",
+    "phoneNumber": "032-461-123",
+    "socialLinks": {
+      "facebook": "fb.com/Maekimlung",
+      "instagram": "@maekimlung"
+    },
+    "capacityPerSlot": 50,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.0619,
+    "lng": 99.9412,
+    "rating": 4.3,
+    "reviewCount": 800,
+    "tags": ["thai", "dessert", "ของหวาน", "souvenir"]
+  },
+  {
+    "name": "Chocolate Ville",
+    "description": "ร้านอาหารบรรยากาศหมู่บ้านยุโรป",
+    "address": "23, 1-16 ถ.ประเสริฐมนูกิจ แขวงรามอินทรา เขตคันนายาว กรุงเทพมหานคร 10230",
+    "phoneNumber": "081-921-2016",
+    "socialLinks": {
+      "facebook": "fb.com/chocolateville",
+      "instagram": "@chocolateville"
+    },
+    "capacityPerSlot": 150,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.8118,
+    "lng": 100.6806,
+    "rating": 4.4,
+    "reviewCount": 5500,
+    "tags": ["international", "ของคาว", "attraction"]
+  },
+  {
+    "name": "ร้านกาแฟชายทุ่ง",
+    "description": "กาแฟรสชาติเยี่ยม บรรยากาศสวนร่มรื่น",
+    "address": "คลองสี่ ถ.รังสิต-นครนายก อ.ธัญบุรี จ.ปทุมธานี 12110",
+    "phoneNumber": "02-123-4567",
+    "socialLinks": {
+      "facebook": "fb.com/ChaithungCoffee",
+      "instagram": "@chaithungcoffee"
+    },
+    "capacityPerSlot": 40,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 14.0416,
+    "lng": 100.7302,
+    "rating": 4.5,
+    "reviewCount": 1100,
+    "tags": ["coffee", "cafe", "เครื่องดื่ม"]
+  },
+  {
+    "name": "ชาตรามือ (ChaTraMue)",
+    "description": "ชาไทยเย็นรสเข้มข้นและไอศกรีมชาไทย",
+    "address": "ชั้น LG ศูนย์การค้าเทอร์มินอล 21 อโศก เขตวัฒนา กรุงเทพมหานคร 10110",
+    "phoneNumber": "02-108-0888",
+    "socialLinks": {
+      "facebook": "fb.com/ChaTraMue",
+      "instagram": "@chatramue"
+    },
+    "capacityPerSlot": 10,
+    "imageUrl": [
+      "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
+    ],
+    "lat": 13.7388,
+    "lng": 100.5604,
+    "rating": 4.6,
+    "reviewCount": 1500,
+    "tags": ["tea", "dessert", "เครื่องดื่ม"]
+  }
+];
               try {
                 for (var data in dummyData) {
                   await restaurants.add(data);

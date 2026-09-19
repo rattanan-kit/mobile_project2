@@ -30,6 +30,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+            
+        <!-- ============================================== -->
+        <!-- เพิ่ม Google Maps API Key ตรงนี้ครับ -->
+        <meta-data 
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBB1uMvd8EA2Wb_rBqWHFx1K6qqb7J5d7A" />
+        <!-- ============================================== -->
+            
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
