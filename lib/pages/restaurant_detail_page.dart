@@ -18,18 +18,15 @@ class RestaurantDetailPage extends StatelessWidget {
         : [];
 
     return Scaffold(
-      backgroundColor:
-          Colors.grey[100], // 1. ปรับพื้นหลังฉากหลังเป็นเทาอ่อนลดความขาวโพลน
+      backgroundColor: Colors.grey[100],
       body: CustomScrollView(
         slivers: [
           // --- 1. รูปหน้าร้านแบบอลังการ ---
           SliverAppBar(
-            expandedHeight: 280.0, // เพิ่มความสูงปกนิดหน่อย
+            expandedHeight: 280.0,
             pinned: true,
-            backgroundColor: const Color.fromARGB(255, 243, 93, 33),
-            iconTheme: const IconThemeData(
-              color: Colors.white,
-            ), // ให้ปุ่ม back เป็นสีขาว
+            backgroundColor: Colors.blue,
+            iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
@@ -40,7 +37,6 @@ class RestaurantDetailPage extends StatelessWidget {
                           color: Colors.grey[300],
                           child: const Icon(Icons.restaurant, size: 80),
                         ),
-                  // ใส่ Gradient สีดำบางๆ ด้านล่างรูปร้าน เพื่อให้ไอคอนดูชัดขึ้น
                   const DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -59,7 +55,6 @@ class RestaurantDetailPage extends StatelessWidget {
               ),
             ),
             actions: [
-              // ปรับปุ่ม Favorite ให้อยู่ในวงกลมโปร่งแสง จะได้ดูพรีเมียม
               Container(
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
@@ -77,7 +72,6 @@ class RestaurantDetailPage extends StatelessWidget {
           // --- 2. เนื้อหาในหน้าร้าน ---
           SliverToBoxAdapter(
             child: Container(
-              // 2. ทำขอบเนื้อหาโค้งมน ซ้อนทับรูปด้านบนนิดๆ
               transform: Matrix4.translationValues(0.0, -20.0, 0.0),
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -146,7 +140,6 @@ class RestaurantDetailPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-
                         Wrap(
                           spacing: 8,
                           children: restaurant.tags
@@ -161,8 +154,7 @@ class RestaurantDetailPage extends StatelessWidget {
                                     ),
                                   ),
                                   backgroundColor: Colors.blue[50],
-                                  side:
-                                      BorderSide.none, // เอาเส้นขอบออกให้ดูคลีน
+                                  side: BorderSide.none,
                                   padding: EdgeInsets.zero,
                                 ),
                               )
@@ -170,7 +162,7 @@ class RestaurantDetailPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
 
-                        // --- เพิ่มไอคอนสิ่งอำนวยความสะดวก (Facilities) เพื่อลดความโล่ง ---
+                        // --- ไอคอนสิ่งอำนวยความสะดวก ---
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
@@ -212,7 +204,7 @@ class RestaurantDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // --- 3. ส่วนรูปเมนู (Animated Carousel) ---
+                  // --- 3. ส่วนรูปเมนู ---
                   if (menuImages.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
@@ -229,7 +221,7 @@ class RestaurantDetailPage extends StatelessWidget {
                     const SizedBox(height: 30),
                   ],
 
-                  // --- 4. แผนที่และที่อยู่ (OpenStreetMap) ---
+                  // --- 4. แผนที่และที่อยู่ ---
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -286,7 +278,7 @@ class RestaurantDetailPage extends StatelessWidget {
                                           Icons.location_on,
                                           color: Colors.red,
                                           size: 45,
-                                        ), // หมุดใหญ่ขึ้นนิดนึง
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -342,7 +334,7 @@ class RestaurantDetailPage extends StatelessWidget {
                     ),
                   ),
 
-                  // --- 5. ส่วนรีวิวและคอมเมนต์ (ที่อยากทำตอนแรก) ---
+                  // --- 5. ส่วนรีวิวและคอมเมนต์ ---
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -366,13 +358,12 @@ class RestaurantDetailPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
 
-                        // ตัวอย่างคอมเมนต์จำลอง (Dummy Comment)
                         _buildCommentItem(
                           name: 'คุณ สมชาย ใจดี',
                           time: '2 วันที่แล้ว',
                           rating: 5,
                           comment:
-                              'บรรยากาศดีมากครับ อาหารอร่อย พนักงานบริการดีเยี่ยม แนะนำเลยครับ!',
+                              'บรรยากาศดีมาก อาหารอร่อย พนักงานบริการดีเยี่ยม แนะนำเลย!',
                           avatarColor: Colors.blue[200]!,
                         ),
                         const SizedBox(height: 16),
@@ -384,9 +375,7 @@ class RestaurantDetailPage extends StatelessWidget {
                               'สเต็กเนื้อนุ่มมาก แต่แอบหาที่จอดรถยากนิดนึงช่วงเย็น โดยรวมประทับใจค่ะ',
                           avatarColor: Colors.pink[200]!,
                         ),
-                        const SizedBox(
-                          height: 40,
-                        ), // ระยะห่างก่อนถึงปุ่มจองด้านล่าง
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
@@ -397,7 +386,7 @@ class RestaurantDetailPage extends StatelessWidget {
         ],
       ),
 
-      // --- ปุ่มจองโต๊ะปรับดีไซน์นิดหน่อยให้ดูเด่นขึ้น ---
+      // --- ปุ่มจองโต๊ะด้านล่าง ---
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -426,8 +415,12 @@ class RestaurantDetailPage extends StatelessWidget {
                 elevation: 0,
               ),
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('กำลังเปิดหน้าต่างจองโต๊ะ...')),
+                // สั่งเปิด Bottom Sheet ขึ้นมา
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const BookingBottomSheetWidget(),
                 );
               },
               child: const Text(
@@ -441,7 +434,6 @@ class RestaurantDetailPage extends StatelessWidget {
     );
   }
 
-  // Widget ช่วยสร้างไอคอนสิ่งอำนวยความสะดวก
   Widget _buildFacilityIcon(IconData icon, String label) {
     return Column(
       children: [
@@ -459,7 +451,6 @@ class RestaurantDetailPage extends StatelessWidget {
     );
   }
 
-  // Widget ช่วยสร้างรายการคอมเมนต์
   Widget _buildCommentItem({
     required String name,
     required String time,
@@ -470,7 +461,7 @@ class RestaurantDetailPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50], // พื้นหลังกล่องคอมเมนต์สีเทาอ่อนๆ
+        color: Colors.grey[50],
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey[200]!),
       ),
@@ -535,7 +526,9 @@ class RestaurantDetailPage extends StatelessWidget {
   }
 }
 
-// Widget MenuCarousel คงเดิมเป๊ะๆ ครับ
+// =========================================================================
+// Widget MenuCarousel
+// =========================================================================
 class MenuCarousel extends StatefulWidget {
   final List<String> images;
   const MenuCarousel({super.key, required this.images});
@@ -598,6 +591,333 @@ class _MenuCarouselState extends State<MenuCarousel> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+// =========================================================================
+// Widget สำหรับฟอร์มจองโต๊ะแบบ Bottom Sheet (ล็อกเวลา & กันจองย้อนหลัง)
+// =========================================================================
+class BookingBottomSheetWidget extends StatefulWidget {
+  const BookingBottomSheetWidget({super.key});
+
+  @override
+  State<BookingBottomSheetWidget> createState() =>
+      _BookingBottomSheetWidgetState();
+}
+
+class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
+  int _guestCount = 2; // จำนวนคน
+  DateTime _selectedDate = DateTime.now(); // วันที่เริ่มต้นคือวันนี้
+  String?
+  _selectedTime; // เก็บเวลาเป็น String และให้ค่าเริ่มต้นเป็น null (บังคับให้เลือก)
+
+  // ฟังก์ชันสร้างรอบเวลา (Fixed Slots) และกรองเวลาที่ผ่านไปแล้ว
+  List<String> _getAvailableTimeSlots() {
+    // กำหนดรอบเวลาของร้าน (เช่น 8 โมงเช้า ถึง 2 ทุ่ม)
+    List<String> allSlots = [
+      '08:00',
+      '09:00',
+      '10:00',
+      '11:00',
+      '12:00',
+      '13:00',
+      '14:00',
+      '15:00',
+      '16:00',
+      '17:00',
+      '18:00',
+      '19:00',
+      '20:00',
+    ];
+
+    DateTime now = DateTime.now();
+    // เช็กว่าวันที่เลือก คือ วันนี้ หรือไม่?
+    bool isToday =
+        _selectedDate.year == now.year &&
+        _selectedDate.month == now.month &&
+        _selectedDate.day == now.day;
+
+    if (isToday) {
+      // ถ้าเป็นวันนี้ ให้กรองเอาเฉพาะ "ชั่วโมง" ที่มากกว่าเวลาปัจจุบัน
+      return allSlots.where((time) {
+        int hour = int.parse(time.split(':')[0]);
+        return hour > now.hour; // ป้องกันการเลือกเวลาที่ผ่านไปแล้ว
+      }).toList();
+    }
+
+    // ถ้าเป็นวันพรุ่งนี้เป็นต้นไป โชว์เวลาทั้งหมดได้เลย
+    return allSlots;
+  }
+
+  // ฟังก์ชันเปิดปฏิทินเลือกวัน
+  Future<void> _pickDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(), // ห้ามเลือกวันในอดีต (เมื่อวาน)
+      lastDate: DateTime.now().add(
+        const Duration(days: 30),
+      ), // จองล่วงหน้าได้ 30 วัน
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Colors.blue,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+        _selectedTime = null; // รีเซ็ตเวลาที่เลือกไว้ เพราะเปลี่ยนวันแล้ว
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // จัด Format วันที่ให้แสดงผลสวยๆ (บวก 543 เป็น พ.ศ.)
+    final String dateString =
+        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year + 543}';
+
+    // ดึงเวลาที่สามารถจองได้ตามวันที่เลือก
+    final availableTimeSlots = _getAvailableTimeSlots();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // ให้แผงสูงพอดีกับเนื้อหา
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // แถบขีด Drag Handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            const Text(
+              'รายละเอียดการจอง',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+
+            // --- 1. เลือกจำนวนคน ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.people,
+                        color: Colors.blue,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'จำนวนคน',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        if (_guestCount > 1) setState(() => _guestCount--);
+                      },
+                      icon: const Icon(Icons.remove_circle_outline),
+                      color: _guestCount > 1 ? Colors.blue : Colors.grey,
+                    ),
+                    SizedBox(
+                      width: 40,
+                      child: Text(
+                        '$_guestCount',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => setState(() => _guestCount++),
+                      icon: const Icon(Icons.add_circle_outline),
+                      color: Colors.blue,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(),
+            ),
+
+            // --- 2. เลือกวันที่ (กดเปิดปฏิทิน) ---
+            const Text(
+              'วันที่ต้องการจอง',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => _pickDate(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_month,
+                          color: Colors.blue,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          dateString,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'เปลี่ยน',
+                      style: TextStyle(
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // --- 3. เลือกรอบเวลา (Fixed Slots) ---
+            const Text(
+              'เลือกรอบเวลา',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            availableTimeSlots.isEmpty
+                ? Container(
+                    padding: const EdgeInsets.all(16),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'ไม่มีรอบเวลาว่างสำหรับวันนี้แล้ว โปรดเลือกวันอื่น',
+                      style: TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                : Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: availableTimeSlots.map((time) {
+                      final isSelected = _selectedTime == time;
+                      return ChoiceChip(
+                        label: Text(time),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) setState(() => _selectedTime = time);
+                        },
+                        selectedColor: Colors.blue,
+                        labelStyle: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black87,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                        backgroundColor: Colors.grey[100],
+                        side: BorderSide.none,
+                      );
+                    }).toList(),
+                  ),
+            const SizedBox(height: 32),
+
+            // --- 4. ปุ่มยืนยัน (กดได้ก็ต่อเมื่อเลือกเวลาแล้ว) ---
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _selectedTime != null
+                      ? Colors.blue
+                      : Colors.grey[300],
+                  foregroundColor: _selectedTime != null
+                      ? Colors.white
+                      : Colors.grey[600],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: _selectedTime == null
+                    ? null
+                    : () {
+                        Navigator.pop(context);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'จองโต๊ะสำเร็จ!\nจำนวน $_guestCount ท่าน วันที่ $dateString เวลา $_selectedTime น.',
+                            ),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      },
+                child: const Text(
+                  'ยืนยันการจอง',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
