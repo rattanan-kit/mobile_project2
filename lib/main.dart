@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 
 import 'pages/login_page.dart';
 import 'pages/main_screen.dart'; // ไฟล์ใหม่ท
+import 'pages/test_booking_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

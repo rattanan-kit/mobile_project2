@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // 1. ต้อง import Firebase Auth
 import 'register_page.dart';
-
+import 'main_screen.dart'; // 2. import หน้า MainScreen ของเรามาด้วย
+import 'test_booking_page.dart'; // 2. import หน้า MainScreen ของเรามาด้วย
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -10,61 +11,340 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final AuthService _auth = AuthService();
-  final TextEditingController _emailCtrl = TextEditingController();
-  final TextEditingController _passwordCtrl = TextEditingController();
-  String _errorMessage = '';
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  bool _isObscure = true;
+  bool _isLoading = false; // เอาไว้ทำปุ่มหมุนๆ ตอนกำลังโหลดรอ Firebase
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // ==========================================
+  // ฟังก์ชันล็อกอินของจริง (คุยกับ Firebase)
+  // ==========================================
+  Future<void> _loginToFirebase() async {
+    // 1. เช็กก่อนว่ากรอกฟอร์มครบและถูกฟอร์แมตไหม
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true; // โชว์ปุ่มโหลด
+      });
+
+      try {
+        // 2. ส่งข้อมูลไปถาม Firebase ว่ามี User นี้ไหม รหัสถูกไหม
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+        // 3. ถ้าสำเร็จ! (ไม่มี Error เด้งออกไป)
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('เข้าสู่ระบบสำเร็จ!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // ล้าง Stack หน้าจอทิ้งทั้งหมด แล้วโยนไปหน้า MainScreen (ป้องกันการกดปุ่มย้อนกลับ)
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+            (route) => false,
+          );
+        }
+      } on FirebaseAuthException catch (e) {
+        // 4. ถ้าล็อกอินไม่สำเร็จ (รหัสผิด, ไม่มีอีเมลในระบบ)
+        String errorMessage = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+
+        // เช็ก Code ที่ Firebase ส่งกลับมาเพื่อบอกผู้ใช้ให้ตรงจุด
+        if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+          errorMessage = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+        } else if (e.code == 'wrong-password') {
+          errorMessage = 'รหัสผ่านไม่ถูกต้อง';
+        } else if (e.code == 'too-many-requests') {
+          errorMessage = 'พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่';
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+          );
+        }
+      } finally {
+        // ไม่ว่าจะสำเร็จหรือพัง ก็ต้องหยุดโชว์ปุ่มโหลด
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Test Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      backgroundColor: Colors.grey[100],
+      body: SingleChildScrollView(
+        child: Stack(
           children: [
-            if (_errorMessage.isNotEmpty)
-              Text(_errorMessage, style: const TextStyle(color: Colors.red)),
-            TextField(
-              controller: _emailCtrl,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            TextField(
-              controller: _passwordCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Password (6 ตัวขึ้นไป)',
+            // --- 1. Header พื้นหลังสีส้มโค้งๆ ด้านบน ---
+            Container(
+              height: 280,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
+                ),
               ),
-              obscureText: true,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(
+                          Icons.arrow_back_ios,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      const Text(
+                        'ยินดีต้อนรับกลับมา!',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'เข้าสู่ระบบเพื่อจองโต๊ะร้านโปรดของคุณ',
+                        style: TextStyle(fontSize: 16, color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    var user = await _auth.login(
-                      _emailCtrl.text,
-                      _passwordCtrl.text,
-                    );
-                    if (user == null)
-                      setState(() => _errorMessage = 'ล็อกอินล้มเหลว');
-                  },
-                  child: const Text('Login'),
+
+            // --- 2. กล่อง Card ลอยซ้อนทับ (ฟอร์มกรอกข้อมูล) ---
+            Container(
+              margin: const EdgeInsets.only(
+                top: 220,
+                left: 24,
+                right: 24,
+                bottom: 40,
+              ),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // --- ช่องกรอกอีเมล ---
+                    const Text(
+                      'อีเมล',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        hintText: 'example@email.com',
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        prefixIcon: Icon(
+                          Icons.email_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty)
+                          return 'กรุณากรอกอีเมล';
+                        final emailRegex = RegExp(
+                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                        );
+                        if (!emailRegex.hasMatch(value))
+                          return 'รูปแบบอีเมลไม่ถูกต้อง';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // --- ช่องกรอกรหัสผ่าน ---
+                    const Text(
+                      'รหัสผ่าน',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _isObscure,
+                      decoration: InputDecoration(
+                        hintText: '••••••••',
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        prefixIcon: Icon(
+                          Icons.lock_outline,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isObscure
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () =>
+                              setState(() => _isObscure = !_isObscure),
+                        ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty)
+                          return 'กรุณากรอกรหัสผ่าน';
+                        if (value.length < 6)
+                          return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // --- ลืมรหัสผ่าน ---
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          'ลืมรหัสผ่าน?',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // --- ปุ่ม Login ---
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : _loginToFirebase, // ถ้าโหลดอยู่จะกดซ้ำไม่ได้
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 5,
+                          shadowColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.4),
+                          disabledBackgroundColor:
+                              Colors.grey[300], // สีตอนปุ่มโดนล็อก
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3,
+                                ),
+                              )
+                            : const Text(
+                                'เข้าสู่ระบบ',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // --- ลิงก์ไปหน้าสมัครสมาชิก ---
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'ยังไม่มีบัญชีใช่ไหม?',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RegisterPage(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            'สมัครสมาชิก',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    // เปลี่ยนจากการเรียก _auth.register เป็นการสั่งเปลี่ยนหน้าแทน
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterPage(),
-                      ), // ชื่อคลาสของหน้าสมัครสมาชิกที่คุณเพิ่งสร้าง
-                    );
-                  },
-                  child: const Text('Register'),
-                ),
-              ],
+              ),
             ),
           ],
         ),
