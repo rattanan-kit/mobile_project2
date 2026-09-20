@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_fonts/google_fonts.dart'; // เพิ่ม Google Fonts
+// import 'package:firebase_auth/firebase_auth.dart'; // คอมเมนต์ไว้ก่อนเพราะยังไม่ได้ใช้เช็กสถานะหน้าแรก
+import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 
-import 'pages/login_page.dart';
-import 'pages/main_screen.dart'; // ไฟล์ใหม่ท
+// import 'pages/login_page.dart'; // คอมเมนต์ไว้ก่อนชั่วคราว
+import 'pages/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +21,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Restaurant Booking',
-      // --- ใส่ Theme หลักของตรงนี้ ---
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFFF5722), // สีส้ม
@@ -31,18 +30,8 @@ class MyApp extends StatelessWidget {
         textTheme: GoogleFonts.promptTextTheme(Theme.of(context).textTheme),
         scaffoldBackgroundColor: const Color(0xFFF8F9FA),
       ),
-      // -----------------------------
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          // ถ้าล็อกอินแล้ว ไปหน้า MainScreen เลย
-          if (snapshot.hasData) {
-            return const MainScreen();
-          }
-          // ถ้ายังไม่ล็อกอิน ไปหน้า LoginPage
-          return const LoginPage();
-        },
-      ),
+      // --- เปลี่ยนตรงนี้ให้วิ่งไปหน้า MainScreen ทันที ---
+      home: const MainScreen(),
     );
   }
 }
