@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // <-- นำเข้า Firestore
 import '../models/restaurant_model.dart';
 
 class RestaurantDetailPage extends StatelessWidget {
@@ -162,7 +163,6 @@ class RestaurantDetailPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
 
-                        // --- ไอคอนสิ่งอำนวยความสะดวก ---
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
@@ -204,7 +204,6 @@ class RestaurantDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // --- 3. ส่วนรูปเมนู ---
                   if (menuImages.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
@@ -221,7 +220,6 @@ class RestaurantDetailPage extends StatelessWidget {
                     const SizedBox(height: 30),
                   ],
 
-                  // --- 4. แผนที่และที่อยู่ ---
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -334,7 +332,6 @@ class RestaurantDetailPage extends StatelessWidget {
                     ),
                   ),
 
-                  // --- 5. ส่วนรีวิวและคอมเมนต์ ---
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -386,7 +383,6 @@ class RestaurantDetailPage extends StatelessWidget {
         ],
       ),
 
-      // --- ปุ่มจองโต๊ะด้านล่าง ---
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -415,12 +411,13 @@ class RestaurantDetailPage extends StatelessWidget {
                 elevation: 0,
               ),
               onPressed: () {
-                // สั่งเปิด Bottom Sheet ขึ้นมา
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (context) => const BookingBottomSheetWidget(),
+                  // --- ส่งข้อมูลร้านเข้าไปใน Bottom Sheet ด้วย ---
+                  builder: (context) =>
+                      BookingBottomSheetWidget(restaurant: restaurant),
                 );
               },
               child: const Text(
@@ -526,9 +523,6 @@ class RestaurantDetailPage extends StatelessWidget {
   }
 }
 
-// =========================================================================
-// Widget MenuCarousel
-// =========================================================================
 class MenuCarousel extends StatefulWidget {
   final List<String> images;
   const MenuCarousel({super.key, required this.images});
@@ -597,10 +591,12 @@ class _MenuCarouselState extends State<MenuCarousel> {
 }
 
 // =========================================================================
-// Widget สำหรับฟอร์มจองโต๊ะแบบ Bottom Sheet (ล็อกเวลา & กันจองย้อนหลัง)
+// Widget สำหรับฟอร์มจองโต๊ะแบบ Bottom Sheet (อ่านจาก Database + บันทึก)
 // =========================================================================
 class BookingBottomSheetWidget extends StatefulWidget {
-  const BookingBottomSheetWidget({super.key});
+  final RestaurantModel restaurant; // รับข้อมูลร้านเข้ามาเพื่อใช้อ้างอิง ID
+
+  const BookingBottomSheetWidget({super.key, required this.restaurant});
 
   @override
   State<BookingBottomSheetWidget> createState() =>
@@ -608,14 +604,15 @@ class BookingBottomSheetWidget extends StatefulWidget {
 }
 
 class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
-  int _guestCount = 2; // จำนวนคน
-  DateTime _selectedDate = DateTime.now(); // วันที่เริ่มต้นคือวันนี้
-  String?
-  _selectedTime; // เก็บเวลาเป็น String และให้ค่าเริ่มต้นเป็น null (บังคับให้เลือก)
+  int _guestCount = 2;
+  DateTime _selectedDate = DateTime.now();
+  String? _selectedTime;
+  bool _isLoading = false; // เอาไว้หมุนโหลดตอนกำลังบันทึก
 
-  // ฟังก์ชันสร้างรอบเวลา (Fixed Slots) และกรองเวลาที่ผ่านไปแล้ว
+  // สมมติว่าร้านนี้รับคิวได้รอบละ 20 คน (ในอนาคตควรดึงค่านี้มาจาก Database ของร้าน)
+  final int capacityPerSlot = 20;
+
   List<String> _getAvailableTimeSlots() {
-    // กำหนดรอบเวลาของร้าน (เช่น 8 โมงเช้า ถึง 2 ทุ่ม)
     List<String> allSlots = [
       '08:00',
       '09:00',
@@ -633,63 +630,88 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
     ];
 
     DateTime now = DateTime.now();
-    // เช็กว่าวันที่เลือก คือ วันนี้ หรือไม่?
     bool isToday =
         _selectedDate.year == now.year &&
         _selectedDate.month == now.month &&
         _selectedDate.day == now.day;
 
     if (isToday) {
-      // ถ้าเป็นวันนี้ ให้กรองเอาเฉพาะ "ชั่วโมง" ที่มากกว่าเวลาปัจจุบัน
       return allSlots.where((time) {
         int hour = int.parse(time.split(':')[0]);
-        return hour > now.hour; // ป้องกันการเลือกเวลาที่ผ่านไปแล้ว
+        return hour > now.hour;
       }).toList();
     }
-
-    // ถ้าเป็นวันพรุ่งนี้เป็นต้นไป โชว์เวลาทั้งหมดได้เลย
     return allSlots;
   }
 
-  // ฟังก์ชันเปิดปฏิทินเลือกวัน
   Future<void> _pickDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime.now(), // ห้ามเลือกวันในอดีต (เมื่อวาน)
-      lastDate: DateTime.now().add(
-        const Duration(days: 30),
-      ), // จองล่วงหน้าได้ 30 วัน
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Colors.blue,
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 30)),
     );
-
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _selectedTime = null; // รีเซ็ตเวลาที่เลือกไว้ เพราะเปลี่ยนวันแล้ว
+        _selectedTime = null;
       });
+    }
+  }
+
+  // ฟังก์ชันบันทึกข้อมูลลง Firebase
+  Future<void> _submitBooking() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // แปลงวันที่ให้อยู่ใน Format ปี-เดือน-วัน (เช่น 2026-09-21) เพื่อเซฟลงฐานข้อมูล
+      String dbDate =
+          "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
+
+      // บันทึกลง Collection "bookings"
+      await FirebaseFirestore.instance.collection('bookings').add({
+        'restaurantId': widget.restaurant.id,
+        'restaurantName': widget.restaurant.name,
+        'date': dbDate,
+        'time': _selectedTime,
+        'guestCount': _guestCount,
+        'status': 'confirmed',
+        'userId': 'demo_user_001', // ตอนนี้จำลองรหัสผู้ใช้ไปก่อน
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        Navigator.pop(context); // ปิดหน้าต่าง
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('จองโต๊ะสำเร็จแล้ว!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('เกิดข้อผิดพลาด: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // จัด Format วันที่ให้แสดงผลสวยๆ (บวก 543 เป็น พ.ศ.)
-    final String dateString =
+    final String displayDate =
         '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year + 543}';
-
-    // ดึงเวลาที่สามารถจองได้ตามวันที่เลือก
     final availableTimeSlots = _getAvailableTimeSlots();
+
+    // สร้าง Format วันที่สำหรับใช้ค้นหาใน Database
+    final String dbSearchDate =
+        "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -699,10 +721,9 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
       ),
       child: SafeArea(
         child: Column(
-          mainAxisSize: MainAxisSize.min, // ให้แผงสูงพอดีกับเนื้อหา
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // แถบขีด Drag Handle
             Center(
               child: Container(
                 width: 40,
@@ -714,7 +735,6 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
               ),
             ),
             const SizedBox(height: 24),
-
             const Text(
               'รายละเอียดการจอง',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -753,6 +773,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                   children: [
                     IconButton(
                       onPressed: () {
+                        // ถ้าลดคน แล้วที่นั่งเวิร์คกับรอบที่เลือกไว้ ค่อยยอมให้ลด
                         if (_guestCount > 1) setState(() => _guestCount--);
                       },
                       icon: const Icon(Icons.remove_circle_outline),
@@ -783,7 +804,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
               child: Divider(),
             ),
 
-            // --- 2. เลือกวันที่ (กดเปิดปฏิทิน) ---
+            // --- 2. เลือกวันที่ ---
             const Text(
               'วันที่ต้องการจอง',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -813,7 +834,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          dateString,
+                          displayDate,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -834,7 +855,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
             ),
             const SizedBox(height: 24),
 
-            // --- 3. เลือกรอบเวลา (Fixed Slots) ---
+            // --- 3. เลือกรอบเวลา (StreamBuilder ดึงข้อมูลสดมาเช็ก Capacity) ---
             const Text(
               'เลือกรอบเวลา',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -849,37 +870,93 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
-                      'ไม่มีรอบเวลาว่างสำหรับวันนี้แล้ว โปรดเลือกวันอื่น',
+                      'ไม่มีรอบเวลาว่างสำหรับวันนี้แล้ว',
                       style: TextStyle(color: Colors.red),
                       textAlign: TextAlign.center,
                     ),
                   )
-                : Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: availableTimeSlots.map((time) {
-                      final isSelected = _selectedTime == time;
-                      return ChoiceChip(
-                        label: Text(time),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          if (selected) setState(() => _selectedTime = time);
-                        },
-                        selectedColor: Colors.blue,
-                        labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black87,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                        backgroundColor: Colors.grey[100],
-                        side: BorderSide.none,
+                : StreamBuilder<QuerySnapshot>(
+                    // ยิง Query เช็กยอดการจองของร้านนี้ ในวันที่เลือกว่ามีกี่คนแล้ว
+                    stream: FirebaseFirestore.instance
+                        .collection('bookings')
+                        .where('restaurantId', isEqualTo: widget.restaurant.id)
+                        .where('date', isEqualTo: dbSearchDate)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      // คำนวณหายอดจองในแต่ละช่วงเวลา
+                      Map<String, int> bookedSeatsPerSlot = {};
+                      for (var doc in snapshot.data!.docs) {
+                        String time = doc['time'];
+                        int guests = doc['guestCount'] ?? 0;
+                        bookedSeatsPerSlot[time] =
+                            (bookedSeatsPerSlot[time] ?? 0) + guests;
+                      }
+
+                      return Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: availableTimeSlots.map((time) {
+                          // คำนวณที่นั่งว่าง
+                          int booked = bookedSeatsPerSlot[time] ?? 0;
+                          int remainingSeats = capacityPerSlot - booked;
+
+                          // ถ้ายอดที่ผู้ใช้ต้องการจอง มันเยอะกว่าที่นั่งว่าง ให้กดไม่ได้
+                          bool isNotEnoughSeats = _guestCount > remainingSeats;
+                          bool isSelected = _selectedTime == time;
+
+                          return ChoiceChip(
+                            label: Column(
+                              children: [
+                                Text(time),
+                                Text(
+                                  remainingSeats > 0
+                                      ? '(ว่าง $remainingSeats)'
+                                      : '(เต็ม)',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: isNotEnoughSeats
+                                        ? Colors.red[300]
+                                        : (isSelected
+                                              ? Colors.white70
+                                              : Colors.green[600]),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            selected: isSelected,
+                            // ถ้าที่นั่งไม่พอ ให้ disable ปุ่ม (ใส่ null)
+                            onSelected: isNotEnoughSeats
+                                ? null
+                                : (selected) {
+                                    if (selected)
+                                      setState(() => _selectedTime = time);
+                                  },
+                            selectedColor: Colors.blue,
+                            labelStyle: TextStyle(
+                              color: isNotEnoughSeats
+                                  ? Colors.grey
+                                  : (isSelected
+                                        ? Colors.white
+                                        : Colors.black87),
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                            backgroundColor: Colors.grey[100],
+                            disabledColor: Colors.grey[200],
+                            side: BorderSide.none,
+                          );
+                        }).toList(),
                       );
-                    }).toList(),
+                    },
                   ),
             const SizedBox(height: 32),
 
-            // --- 4. ปุ่มยืนยัน (กดได้ก็ต่อเมื่อเลือกเวลาแล้ว) ---
+            // --- 4. ปุ่มยืนยัน ---
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -896,24 +973,25 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                   ),
                   elevation: 0,
                 ),
-                onPressed: _selectedTime == null
+                onPressed: (_selectedTime == null || _isLoading)
                     ? null
-                    : () {
-                        Navigator.pop(context);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'จองโต๊ะสำเร็จ!\nจำนวน $_guestCount ท่าน วันที่ $dateString เวลา $_selectedTime น.',
-                            ),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      },
-                child: const Text(
-                  'ยืนยันการจอง',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                    : _submitBooking,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 3,
+                        ),
+                      )
+                    : const Text(
+                        'ยืนยันการจอง',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
           ],
