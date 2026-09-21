@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/restaurant_model.dart'; 
 import 'restaurant_detail_page.dart';
 import 'profile_page.dart';
-
+import 'my_bookings_page.dart';
 // ==========================================
 // 1. หน้า MainScreen
 // ==========================================
@@ -19,7 +19,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const Center(child: Text('หน้าการจองของฉัน (รอสร้าง)')),
+    const MyBookingsPage(),
     const ProfilePage(),
   ];
 
