@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // <-- เพิ่มบรรทัดนี้
 import '../models/restaurant_model.dart';
+import 'login_page.dart'; // <-- เพิ่มบรรทัดนี้ (แก้ path ให้ตรงกับโฟลเดอร์ของคุณ)
 
 class RestaurantDetailPage extends StatelessWidget {
   final RestaurantModel restaurant;
@@ -22,11 +24,10 @@ class RestaurantDetailPage extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       body: CustomScrollView(
         slivers: [
-          // --- 1. รูปหน้าร้านแบบอลังการ ---
           SliverAppBar(
             expandedHeight: 280.0,
             pinned: true,
-            backgroundColor: Theme.of(context).primaryColor, // ดึงสีจาก Theme
+            backgroundColor: Theme.of(context).primaryColor,
             iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
@@ -69,8 +70,6 @@ class RestaurantDetailPage extends StatelessWidget {
               ),
             ],
           ),
-
-          // --- 2. เนื้อหาในหน้าร้าน ---
           SliverToBoxAdapter(
             child: Container(
               transform: Matrix4.translationValues(0.0, -20.0, 0.0),
@@ -150,15 +149,13 @@ class RestaurantDetailPage extends StatelessWidget {
                                     tag.toUpperCase(),
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).primaryColor, // ดึงสีจาก Theme
+                                      color: Theme.of(context).primaryColor,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  backgroundColor: Theme.of(context)
-                                      .primaryColor
-                                      .withOpacity(0.1), // ดึงสีจาก Theme
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).primaryColor.withOpacity(0.1),
                                   side: BorderSide.none,
                                   padding: EdgeInsets.zero,
                                 ),
@@ -166,7 +163,6 @@ class RestaurantDetailPage extends StatelessWidget {
                               .toList(),
                         ),
                         const SizedBox(height: 24),
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
@@ -196,7 +192,6 @@ class RestaurantDetailPage extends StatelessWidget {
                           padding: EdgeInsets.symmetric(vertical: 20),
                           child: Divider(),
                         ),
-
                         const Text(
                           'เกี่ยวกับร้าน',
                           style: TextStyle(
@@ -217,7 +212,6 @@ class RestaurantDetailPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-
                   if (menuImages.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
@@ -233,7 +227,6 @@ class RestaurantDetailPage extends StatelessWidget {
                     MenuCarousel(images: menuImages),
                     const SizedBox(height: 30),
                   ],
-
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -345,7 +338,6 @@ class RestaurantDetailPage extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -368,7 +360,6 @@ class RestaurantDetailPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 8),
-
                         _buildCommentItem(
                           name: 'คุณ สมชาย ใจดี',
                           time: '2 วันที่แล้ว',
@@ -396,7 +387,6 @@ class RestaurantDetailPage extends StatelessWidget {
           ),
         ],
       ),
-
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -420,13 +410,42 @@ class RestaurantDetailPage extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                backgroundColor: Theme.of(
-                  context,
-                ).primaryColor, // ดึงสีจาก Theme
+                backgroundColor: Theme.of(context).primaryColor,
                 foregroundColor: Colors.white,
                 elevation: 0,
               ),
-              onPressed: () {
+              onPressed: () async {
+                // --- ระบบเช็กล็อกอิน & จำสถานะการจอง ---
+                final user = FirebaseAuth.instance.currentUser;
+
+                if (user == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('กรุณาเข้าสู่ระบบก่อนจองโต๊ะ'),
+                    ),
+                  );
+
+                  // รอผู้ใช้กลับมาจากหน้า Login
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  );
+
+                  // ถ้าย้อนกลับมาแล้วพบว่าล็อกอินสำเร็จ เปิด Bottom Sheet ต่อให้เลย!
+                  if (FirebaseAuth.instance.currentUser != null &&
+                      context.mounted) {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) =>
+                          BookingBottomSheetWidget(restaurant: restaurant),
+                    );
+                  }
+                  return;
+                }
+
+                // ถ้าล็อกอินอยู่แล้ว เปิดได้เลย
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
@@ -455,11 +474,7 @@ class RestaurantDetailPage extends StatelessWidget {
             color: Colors.grey[100],
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            color: Theme.of(context).primaryColor,
-            size: 24,
-          ), // ดึงสีจาก Theme
+          child: Icon(icon, color: Theme.of(context).primaryColor, size: 24),
         ),
         const SizedBox(height: 8),
         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
@@ -517,13 +532,14 @@ class RestaurantDetailPage extends StatelessWidget {
                 ),
               ),
               Row(
-                children: List.generate(5, (index) {
-                  return Icon(
+                children: List.generate(
+                  5,
+                  (index) => Icon(
                     index < rating ? Icons.star : Icons.star_border,
                     color: Colors.amber,
                     size: 16,
-                  );
-                }),
+                  ),
+                ),
               ),
             ],
           ),
@@ -545,14 +561,12 @@ class RestaurantDetailPage extends StatelessWidget {
 class MenuCarousel extends StatefulWidget {
   final List<String> images;
   const MenuCarousel({super.key, required this.images});
-
   @override
   State<MenuCarousel> createState() => _MenuCarouselState();
 }
 
 class _MenuCarouselState extends State<MenuCarousel> {
   late PageController _pageController;
-
   @override
   void initState() {
     super.initState();
@@ -609,14 +623,9 @@ class _MenuCarouselState extends State<MenuCarousel> {
   }
 }
 
-// =========================================================================
-// Widget สำหรับฟอร์มจองโต๊ะแบบ Bottom Sheet (อ่านจาก Database + บันทึก)
-// =========================================================================
 class BookingBottomSheetWidget extends StatefulWidget {
   final RestaurantModel restaurant;
-
   const BookingBottomSheetWidget({super.key, required this.restaurant});
-
   @override
   State<BookingBottomSheetWidget> createState() =>
       _BookingBottomSheetWidgetState();
@@ -644,13 +653,11 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
       '19:00',
       '20:00',
     ];
-
     DateTime now = DateTime.now();
     bool isToday =
         _selectedDate.year == now.year &&
         _selectedDate.month == now.month &&
         _selectedDate.day == now.day;
-
     if (isToday) {
       return allSlots.where((time) {
         int hour = int.parse(time.split(':')[0]);
@@ -670,7 +677,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Theme.of(context).primaryColor, // ดึงสีจาก Theme
+              primary: Theme.of(context).primaryColor,
               onPrimary: Colors.white,
               onSurface: Colors.black,
             ),
@@ -689,10 +696,12 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
 
   Future<void> _submitBooking() async {
     setState(() => _isLoading = true);
-
     try {
       String dbDate =
           "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
+
+      // ดึง ID ของผู้ใช้ปัจจุบันที่ล็อกอินอยู่มาใช้
+      final currentUser = FirebaseAuth.instance.currentUser;
 
       await FirebaseFirestore.instance.collection('bookings').add({
         'restaurantId': widget.restaurant.id,
@@ -701,7 +710,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
         'time': _selectedTime,
         'guestCount': _guestCount,
         'status': 'confirmed',
-        'userId': 'demo_user_001',
+        'userId': currentUser?.uid ?? 'unknown', // ใช้ UID จริง
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -733,7 +742,6 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
     final String displayDate =
         '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year + 543}';
     final availableTimeSlots = _getAvailableTimeSlots();
-
     final String dbSearchDate =
         "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
 
@@ -764,8 +772,6 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-
-            // --- 1. เลือกจำนวนคน ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -774,16 +780,14 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).primaryColor.withOpacity(0.1), // ดึงสีจาก Theme
+                        color: Theme.of(context).primaryColor.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.people,
                         color: Theme.of(context).primaryColor,
                         size: 20,
-                      ), // ดึงสีจาก Theme
+                      ),
                     ),
                     const SizedBox(width: 12),
                     const Text(
@@ -804,7 +808,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                       icon: const Icon(Icons.remove_circle_outline),
                       color: _guestCount > 1
                           ? Theme.of(context).primaryColor
-                          : Colors.grey, // ดึงสีจาก Theme
+                          : Colors.grey,
                     ),
                     SizedBox(
                       width: 40,
@@ -820,7 +824,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                     IconButton(
                       onPressed: () => setState(() => _guestCount++),
                       icon: const Icon(Icons.add_circle_outline),
-                      color: Theme.of(context).primaryColor, // ดึงสีจาก Theme
+                      color: Theme.of(context).primaryColor,
                     ),
                   ],
                 ),
@@ -830,8 +834,6 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Divider(),
             ),
-
-            // --- 2. เลือกวันที่ ---
             const Text(
               'วันที่ต้องการจอง',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -858,7 +860,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                           Icons.calendar_month,
                           color: Theme.of(context).primaryColor,
                           size: 20,
-                        ), // ดึงสีจาก Theme
+                        ),
                         const SizedBox(width: 12),
                         Text(
                           displayDate,
@@ -875,14 +877,12 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                         color: Theme.of(context).primaryColor,
                         fontWeight: FontWeight.bold,
                       ),
-                    ), // ดึงสีจาก Theme
+                    ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 24),
-
-            // --- 3. เลือกรอบเวลา ---
             const Text(
               'เลือกรอบเวลา',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -909,10 +909,8 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                         .where('date', isEqualTo: dbSearchDate)
                         .snapshots(),
                     builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
+                      if (!snapshot.hasData)
                         return const Center(child: CircularProgressIndicator());
-                      }
-
                       Map<String, int> bookedSeatsPerSlot = {};
                       for (var doc in snapshot.data!.docs) {
                         String time = doc['time'];
@@ -920,7 +918,6 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                         bookedSeatsPerSlot[time] =
                             (bookedSeatsPerSlot[time] ?? 0) + guests;
                       }
-
                       return Wrap(
                         spacing: 12,
                         runSpacing: 12,
@@ -928,10 +925,8 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                           int booked = bookedSeatsPerSlot[time] ?? 0;
                           int remainingSeats =
                               widget.restaurant.capacityPerSlot - booked;
-
                           bool isNotEnoughSeats = _guestCount > remainingSeats;
                           bool isSelected = _selectedTime == time;
-
                           return ChoiceChip(
                             label: Column(
                               children: [
@@ -958,9 +953,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                                     if (selected)
                                       setState(() => _selectedTime = time);
                                   },
-                            selectedColor: Theme.of(
-                              context,
-                            ).primaryColor, // ดึงสีจาก Theme
+                            selectedColor: Theme.of(context).primaryColor,
                             labelStyle: TextStyle(
                               color: isNotEnoughSeats
                                   ? Colors.grey
@@ -980,8 +973,6 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                     },
                   ),
             const SizedBox(height: 32),
-
-            // --- 4. ปุ่มยืนยัน ---
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -989,7 +980,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _selectedTime != null
                       ? Theme.of(context).primaryColor
-                      : Colors.grey[300], // ดึงสีจาก Theme
+                      : Colors.grey[300],
                   foregroundColor: _selectedTime != null
                       ? Colors.white
                       : Colors.grey[600],

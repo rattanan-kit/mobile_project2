@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // 1. ต้อง import Firebase Auth
+import 'package:firebase_auth/firebase_auth.dart';
 import 'register_page.dart';
-import 'main_screen.dart'; //
-import 'test_booking_page.dart'; 
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,7 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isObscure = true;
-  bool _isLoading = false; // เอาไว้ทำปุ่มหมุนๆ ตอนกำลังโหลดรอ Firebase
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -30,20 +28,18 @@ class _LoginPageState extends State<LoginPage> {
   // ฟังก์ชันล็อกอินของจริง (คุยกับ Firebase)
   // ==========================================
   Future<void> _loginToFirebase() async {
-    // 1. เช็กก่อนว่ากรอกฟอร์มครบและถูกฟอร์แมตไหม
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true; // โชว์ปุ่มโหลด
+        _isLoading = true;
       });
 
       try {
-        // 2. ส่งข้อมูลไปถาม Firebase ว่ามี User นี้ไหม รหัสถูกไหม
         await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // 3. ถ้าสำเร็จ! (ไม่มี Error เด้งออกไป)
+        // ถ้าล็อกอินสำเร็จ
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -52,18 +48,14 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
 
-          // ล้าง Stack หน้าจอทิ้งทั้งหมด แล้วโยนไปหน้า MainScreen (ป้องกันการกดปุ่มย้อนกลับ)
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-            (route) => false,
-          );
+          // ✅ แก้ตรงนี้: ใช้ pop(true) เพื่อกลับไปหน้าก่อนหน้า (เช่น หน้า Detail)
+          // พร้อมส่งค่า true กลับไปบอกว่า "ล็อกอินผ่านแล้วนะ!"
+          Navigator.pop(context, true);
         }
       } on FirebaseAuthException catch (e) {
-        // 4. ถ้าล็อกอินไม่สำเร็จ (รหัสผิด, ไม่มีอีเมลในระบบ)
+        // จัดการ Error กรณีล็อกอินไม่ผ่าน
         String errorMessage = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
 
-        // เช็ก Code ที่ Firebase ส่งกลับมาเพื่อบอกผู้ใช้ให้ตรงจุด
         if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
           errorMessage = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
         } else if (e.code == 'wrong-password') {
@@ -78,7 +70,6 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       } finally {
-        // ไม่ว่าจะสำเร็จหรือพัง ก็ต้องหยุดโชว์ปุ่มโหลด
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -116,6 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       GestureDetector(
+                        // ถ้ากด Back ตรงนี้แปลว่าเปลี่ยนใจไม่ล็อกอิน ก็กลับไปหน้าเดิมเฉยๆ (ไม่ส่งค่า true)
                         onTap: () => Navigator.pop(context),
                         child: const Icon(
                           Icons.arrow_back_ios,
@@ -277,9 +269,7 @@ class _LoginPageState extends State<LoginPage> {
                       width: double.infinity,
                       height: 54,
                       child: ElevatedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : _loginToFirebase, // ถ้าโหลดอยู่จะกดซ้ำไม่ได้
+                        onPressed: _isLoading ? null : _loginToFirebase,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(
                             context,
@@ -292,8 +282,7 @@ class _LoginPageState extends State<LoginPage> {
                           shadowColor: Theme.of(
                             context,
                           ).colorScheme.primary.withOpacity(0.4),
-                          disabledBackgroundColor:
-                              Colors.grey[300], // สีตอนปุ่มโดนล็อก
+                          disabledBackgroundColor: Colors.grey[300],
                         ),
                         child: _isLoading
                             ? const SizedBox(

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/restaurant_model.dart'; // <-- 1. นำเข้า Model
-import 'restaurant_detail_page.dart'; // <-- 2. นำเข้าหน้า Detail
+import '../models/restaurant_model.dart'; 
+import 'restaurant_detail_page.dart';
+import 'profile_page.dart';
 
 // ==========================================
 // 1. หน้า MainScreen
@@ -19,7 +20,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _pages = [
     const HomePage(),
     const Center(child: Text('หน้าการจองของฉัน (รอสร้าง)')),
-    const Center(child: Text('หน้าโปรไฟล์ (รอสร้าง)')),
+    const ProfilePage(),
   ];
 
   @override
