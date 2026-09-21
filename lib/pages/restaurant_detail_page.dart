@@ -712,6 +712,8 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
         'status': 'confirmed',
         'userId': currentUser?.uid ?? 'unknown', // ใช้ UID จริง
         'createdAt': FieldValue.serverTimestamp(),
+        'userName': currentUser?.displayName ?? currentUser?.email ?? 'ไม่ระบุชื่อ', // เพิ่มชื่อผู้จอง
+        'userEmail': currentUser?.email,
       });
 
       if (mounted) {
