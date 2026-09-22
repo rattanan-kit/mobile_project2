@@ -6,6 +6,7 @@ import 'dummy_pages.dart';
 import 'search_page.dart'; 
 import '../favorites_page.dart';
 import 'random_restaurant_page.dart';
+import 'article_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

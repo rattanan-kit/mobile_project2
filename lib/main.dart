@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF8F9FA),
       ),
       // --- เปลี่ยนตรงนี้ให้วิ่งไปหน้า MainScreen ทันที ---
-      home: const TestBookingPage(),
+      home: const MainScreen(),
     );
   }
 }
