@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/restaurant_model.dart';
 import '../restaurant_detail_page.dart';
-import 'dummy_pages.dart'; // ดึงหน้าชั่วคราวมาใช้
-import 'search_page.dart'; // ดึงหน้าค้นหามาใช้
+import 'dummy_pages.dart'; 
+import 'search_page.dart'; 
+import '../favorites_page.dart';
+import 'random_restaurant_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -75,7 +77,7 @@ class HomePage extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const FavoritePage(),
+                                          const FavoritesPage(),
                                     ),
                                   );
                                 },
@@ -192,10 +194,17 @@ class HomePage extends StatelessWidget {
                         _buildMenuItem(
                           context,
                           Icons.new_releases,
-                          'ร้านเปิดใหม่',
-                          'อัปเดตล่าสุด',
+                          'สุ่มร้านอาหารเลย',
+                          'วันนี้ไม่รู้จะกินอะไรดี?',
                           Colors.green,
-                          () {},
+                          () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RandomRestaurantPage(),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

@@ -11,16 +11,6 @@ class ArticlePage extends StatelessWidget {
   }
 }
 
-class FavoritePage extends StatelessWidget {
-  const FavoritePage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('ร้านที่บันทึกไว้')),
-      body: const Center(child: Text('หน้าจอแสดงร้านโปรด')),
-    );
-  }
-}
 
 class ProfileSettingsPage extends StatelessWidget {
   const ProfileSettingsPage({super.key});

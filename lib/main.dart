@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 // import 'package:firebase_auth/firebase_auth.dart'; // คอมเมนต์ไว้ก่อนเพราะยังไม่ได้ใช้เช็กสถานะหน้าแรก
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_project2/pages/test_booking_page.dart';
 import 'firebase_options.dart';
 
 // import 'pages/login_page.dart'; // คอมเมนต์ไว้ก่อนชั่วคราว
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF8F9FA),
       ),
       // --- เปลี่ยนตรงนี้ให้วิ่งไปหน้า MainScreen ทันที ---
-      home: const MainScreen(),
+      home: const TestBookingPage(),
     );
   }
 }

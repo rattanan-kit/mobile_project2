@@ -29,5 +29,39 @@ class UserService {
       }
     }
   }
+// --- 🛠️ 1. ฟังก์ชันดึงข้อมูลโปรไฟล์ ---
+  Future<Map<String, dynamic>?> getUserData() async {
+    String? uid = _auth.currentUser?.uid;
+    if (uid == null) return null;
+
+    try {
+      DocumentSnapshot doc = await _db.collection('users').doc(uid).get();
+      if (doc.exists) {
+        return doc.data() as Map<String, dynamic>;
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    }
+    return null;
+  }
+
+  // --- 🛠️ 2. ฟังก์ชันอัปเดตข้อมูลโปรไฟล์ ---
+  Future<bool> updateProfile(String username, String phone) async {
+    String? uid = _auth.currentUser?.uid;
+    if (uid == null) return false;
+
+    try {
+      await _db.collection('users').doc(uid).update({
+        'username': username,
+        'phone': phone,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return true; // สำเร็จ
+    } catch (e) {
+      print("Error updating profile: $e");
+      return false; // พัง
+    }
+  }
+
 }
 
