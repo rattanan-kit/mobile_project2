@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // <-- เพิ่มบรรทัดนี้
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/restaurant_model.dart';
-import 'login_page.dart'; // <-- เพิ่มบรรทัดนี้ (แก้ path ให้ตรงกับโฟลเดอร์ของคุณ)
+import '../services/auth_service.dart'; // <-- เพิ่ม Service
+import '../services/user_service.dart'; // <-- เพิ่ม Service
 
 class RestaurantDetailPage extends StatelessWidget {
   final RestaurantModel restaurant;
@@ -65,7 +66,12 @@ class RestaurantDetailPage extends StatelessWidget {
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.favorite_border, color: Colors.white),
-                  onPressed: () {},
+                  onPressed: () {
+                    // --- 🛠️ เพิ่มระบบเช็กล็อกอินและกดร้านโปรด ---
+                    AuthService().requireAuth(context, () {
+                      UserService().toggleFavorite(restaurant.id);
+                    });
+                  },
                 ),
               ),
             ],
@@ -322,11 +328,16 @@ class RestaurantDetailPage extends StatelessWidget {
                               size: 22,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              restaurant.phoneNumber,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
+                            // --- 🛠️ เพิ่ม Expanded กันล้น เผื่อเบอร์โทรยาว ---
+                            Expanded(
+                              child: Text(
+                                restaurant.phoneNumber,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -414,45 +425,17 @@ class RestaurantDetailPage extends StatelessWidget {
                 foregroundColor: Colors.white,
                 elevation: 0,
               ),
-              onPressed: () async {
-                // --- ระบบเช็กล็อกอิน & จำสถานะการจอง ---
-                final user = FirebaseAuth.instance.currentUser;
-
-                if (user == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('กรุณาเข้าสู่ระบบก่อนจองโต๊ะ'),
-                    ),
+              onPressed: () {
+                // --- 🛠️ ยุบโค้ดเช็ก Login ที่ยาวเหยียด ให้เหลือแค่บรรทัดเดียว! ---
+                AuthService().requireAuth(context, () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) =>
+                        BookingBottomSheetWidget(restaurant: restaurant),
                   );
-
-                  // รอผู้ใช้กลับมาจากหน้า Login
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                  );
-
-                  // ถ้าย้อนกลับมาแล้วพบว่าล็อกอินสำเร็จ เปิด Bottom Sheet ต่อให้เลย!
-                  if (FirebaseAuth.instance.currentUser != null &&
-                      context.mounted) {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) =>
-                          BookingBottomSheetWidget(restaurant: restaurant),
-                    );
-                  }
-                  return;
-                }
-
-                // ถ้าล็อกอินอยู่แล้ว เปิดได้เลย
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) =>
-                      BookingBottomSheetWidget(restaurant: restaurant),
-                );
+                });
               },
               child: const Text(
                 'จองโต๊ะเลย',
@@ -517,12 +500,15 @@ class RestaurantDetailPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // --- 🛠️ เพิ่ม maxLines ป้องกันชื่อยาวล้น ---
                     Text(
                       name,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       time,
@@ -700,7 +686,6 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
       String dbDate =
           "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
 
-      // ดึง ID ของผู้ใช้ปัจจุบันที่ล็อกอินอยู่มาใช้
       final currentUser = FirebaseAuth.instance.currentUser;
 
       await FirebaseFirestore.instance.collection('bookings').add({
@@ -710,9 +695,10 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
         'time': _selectedTime,
         'guestCount': _guestCount,
         'status': 'confirmed',
-        'userId': currentUser?.uid ?? 'unknown', // ใช้ UID จริง
+        'userId': currentUser?.uid ?? 'unknown',
         'createdAt': FieldValue.serverTimestamp(),
-        'userName': currentUser?.displayName ?? currentUser?.email ?? 'ไม่ระบุชื่อ', // เพิ่มชื่อผู้จอง
+        'userName':
+            currentUser?.displayName ?? currentUser?.email ?? 'ไม่ระบุชื่อ',
         'userEmail': currentUser?.email,
       });
 
@@ -911,8 +897,9 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                         .where('date', isEqualTo: dbSearchDate)
                         .snapshots(),
                     builder: (context, snapshot) {
-                      if (!snapshot.hasData)
+                      if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
+                      }
                       Map<String, int> bookedSeatsPerSlot = {};
                       for (var doc in snapshot.data!.docs) {
                         String time = doc['time'];
@@ -952,8 +939,9 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                             onSelected: isNotEnoughSeats
                                 ? null
                                 : (selected) {
-                                    if (selected)
+                                    if (selected) {
                                       setState(() => _selectedTime = time);
+                                    }
                                   },
                             selectedColor: Theme.of(context).primaryColor,
                             labelStyle: TextStyle(
