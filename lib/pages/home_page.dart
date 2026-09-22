@@ -598,14 +598,27 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildRestaurantCard(
+Widget _buildRestaurantCard(
     BuildContext context,
     String id,
     String name,
     String description,
-    String imageUrl,
+    String imageUrl, // ตัวแปรนี้คือรูปหน้าปก (ถ้ามี)
     Map<String, dynamic> data,
   ) {
+    // 🛠️ 1. เพิ่มโค้ดดึงรูปภาพทั้งหมดออกมาเป็น List
+    List<String> allImages = [];
+    if (data['imageUrl'] != null) {
+      if (data['imageUrl'] is List) {
+        allImages = List<String>.from(data['imageUrl']); // ดึงมาให้หมดทุก Index
+      } else if (data['imageUrl'] is String) {
+        allImages = [data['imageUrl']];
+      }
+    }
+
+    // เผื่อรูปหน้าปกไว้โชว์ในการ์ด
+    String coverImage = allImages.isNotEmpty ? allImages[0] : '';
+
     return Container(
       margin: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
       decoration: BoxDecoration(
@@ -632,7 +645,8 @@ class HomePage extends StatelessWidget {
               lng: (data['lng'] ?? 99.9912).toDouble(),
               address: data['address'] ?? 'ไม่ระบุที่อยู่',
               phoneNumber: data['phoneNumber'] ?? '-',
-              images: imageUrl.isNotEmpty ? [imageUrl] : [],
+              // 🛠️ 2. เปลี่ยนให้ส่ง List รูปภาพทั้งหมดเข้าไปแทน
+              images: allImages,
               tags: data['tags'] != null
                   ? List<String>.from(data['tags'])
                   : ['แนะนำ'],
@@ -658,9 +672,11 @@ class HomePage extends StatelessWidget {
                   topLeft: Radius.circular(16),
                   bottomLeft: Radius.circular(16),
                 ),
-                child: imageUrl.isNotEmpty
+                child:
+                    coverImage
+                        .isNotEmpty // 🛠️ 3. ใช้ coverImage ตรงนี้แทน
                     ? Image.network(
-                        imageUrl,
+                        coverImage,
                         width: 110,
                         height: 110,
                         fit: BoxFit.cover,
@@ -681,6 +697,7 @@ class HomePage extends StatelessWidget {
                         child: const Icon(Icons.restaurant, color: Colors.grey),
                       ),
               ),
+              // ... โค้ดส่วน Expanded ข้อมูลร้านด้านล่างปล่อยไว้เหมือนเดิมเป๊ะๆ ครับ
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
