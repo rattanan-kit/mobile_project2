@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mobile_project2/pages/Home/deal_page.dart';
 import '../../models/restaurant_model.dart';
 import '../restaurant_detail_page.dart';
 import 'dummy_pages.dart'; 
@@ -194,7 +195,7 @@ class HomePage extends StatelessWidget {
                         ),
                         _buildMenuItem(
                           context,
-                          Icons.new_releases,
+                          Icons.casino,
                           'สุ่มร้านอาหารเลย',
                           'วันนี้ไม่รู้จะกินอะไรดี?',
                           Colors.green,
@@ -237,11 +238,18 @@ class HomePage extends StatelessWidget {
                         ),
                         _buildMenuItem(
                           context,
-                          Icons.map,
-                          'ใกล้ฉัน',
-                          'ดูบนแผนที่',
+                          Icons.local_offer,
+                          'ดีลสุดคุ้ม',
+                          'โปรโมชั่นพิเศษ',
                           Colors.purple,
-                          () {},
+                          () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const DealsPage(),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
