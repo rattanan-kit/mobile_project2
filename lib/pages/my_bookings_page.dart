@@ -41,11 +41,199 @@ class MyBookingsPage extends StatelessWidget {
     }
   }
 
+  // ==========================================
+  // ฟังก์ชันแสดง Pop-up Dialog สำหรับเขียนรีวิว
+  // ==========================================
+  void _showReviewDialog(
+    BuildContext context,
+    Map<String, dynamic> bookingData,
+    String bookingId,
+  ) {
+    int selectedRating = 5; // ค่าเริ่มต้น 5 ดาว
+    final commentController = TextEditingController();
+    final restaurantId = bookingData['restaurantId'] ?? '';
+    final restaurantName = bookingData['restaurantName'] ?? 'ร้านอาหาร';
+    final user = FirebaseAuth.instance.currentUser;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Column(
+                children: [
+                  const Text(
+                    'ให้คะแนน & รีวิว',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    restaurantName,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.normal,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 8),
+
+                    // --- ดาว 5 ดวง สามารถกดเลือกได้ ---
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (index) {
+                        final starValue = index + 1;
+                        return IconButton(
+                          iconSize: 32,
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            starValue <= selectedRating
+                                ? Icons.star_rounded
+                                : Icons.star_outline_rounded,
+                            color: Colors.amber,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              selectedRating = starValue;
+                            });
+                          },
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // --- ช่องกรอกความคิดเห็น ---
+                    TextField(
+                      controller: commentController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: 'แชร์ประสบการณ์ความประทับใจของคุณที่นี่...',
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 13,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              actions: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text(
+                          'ยกเลิก',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (user == null) return;
+
+                          try {
+                            // 1. บันทึกรีวิวไปยังคอลเลกชัน reviews ใน Firestore
+                            await FirebaseFirestore.instance
+                                .collection('reviews')
+                                .add({
+                                  'bookingId': bookingId,
+                                  'restaurantId': restaurantId,
+                                  'restaurantName': restaurantName,
+                                  'userId': user.uid,
+                                  'userName': user.displayName ?? 'ผู้ใช้งาน',
+                                  'rating': selectedRating,
+                                  'comment': commentController.text.trim(),
+                                  'createdAt': FieldValue.serverTimestamp(),
+                                });
+
+                            // 2. อัปเดตการจองว่าถูกรีวิวแล้ว
+                            await FirebaseFirestore.instance
+                                .collection('bookings')
+                                .doc(bookingId)
+                                .update({'isReviewed': true});
+
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'ส่งรีวิวเรียบร้อยแล้ว ขอบคุณครับ!',
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('เกิดข้อผิดพลาด: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'ส่งรีวิว',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    // ถ้ายังไม่ล็อกอิน ให้โชว์หน้าชวนล็อกอิน
     if (user == null) {
       return Scaffold(
         backgroundColor: Colors.grey[100],
@@ -89,7 +277,6 @@ class MyBookingsPage extends StatelessWidget {
       );
     }
 
-    // ถ้าล็อกอินแล้ว ดึงข้อมูลการจองมาโชว์
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -103,7 +290,6 @@ class MyBookingsPage extends StatelessWidget {
         elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // ดึงเฉพาะข้อมูลของ user คนนี้
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('userId', isEqualTo: user.uid)
@@ -128,7 +314,6 @@ class MyBookingsPage extends StatelessWidget {
             );
           }
 
-          // เรียงลำดับข้อมูลในแอป (ป้องกันบั๊กเรื่อง Firebase Index)
           var bookings = snapshot.data!.docs.toList();
           bookings.sort((a, b) {
             var dateA =
@@ -136,7 +321,7 @@ class MyBookingsPage extends StatelessWidget {
             var dateB =
                 (b.data() as Map<String, dynamic>)['createdAt'] as Timestamp?;
             if (dateA == null || dateB == null) return 0;
-            return dateB.compareTo(dateA); // เรียงจากใหม่ไปเก่า
+            return dateB.compareTo(dateA);
           });
 
           return ListView.builder(
@@ -147,8 +332,8 @@ class MyBookingsPage extends StatelessWidget {
               var data = booking.data() as Map<String, dynamic>;
               String docId = booking.id;
               String status = data['status'] ?? 'confirmed';
+              bool isReviewed = data['isReviewed'] ?? false;
 
-              // กำหนดสีและข้อความตามสถานะ
               Color statusColor;
               String statusText;
               if (status == 'completed') {
@@ -248,7 +433,7 @@ class MyBookingsPage extends StatelessWidget {
                         ],
                       ),
 
-                      // โชว์ปุ่มเฉพาะสถานะ confirmed (ยังไม่ได้ไปกิน และยังไม่ยกเลิก)
+                      // ปุ่มควบคุมสำหรับสถานะ confirmed
                       if (status == 'confirmed') ...[
                         const SizedBox(height: 16),
                         Row(
@@ -256,7 +441,6 @@ class MyBookingsPage extends StatelessWidget {
                             Expanded(
                               child: OutlinedButton(
                                 onPressed: () {
-                                  // แจ้งเตือนยืนยันการยกเลิก
                                   showDialog(
                                     context: context,
                                     builder: (ctx) => AlertDialog(
@@ -313,29 +497,35 @@ class MyBookingsPage extends StatelessWidget {
                         ),
                       ],
 
-                      // ถ้าระบบสมบูรณ์แล้ว อาจจะมีปุ่ม "รีวิวร้านนี้" โผล่มาตรงนี้แทน ถ้าสถานะเป็น completed
+                      // ปุ่มกดเปิด Pop-up รีวิวเมื่อสถานะเป็น completed
                       if (status == 'completed') ...[
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'ฟีเจอร์รีวิวกำลังตามมาเร็วๆ นี้!',
-                                  ),
-                                ),
-                              );
-                            },
-                            icon: const Icon(
-                              Icons.star_rate,
-                              color: Colors.amber,
+                            onPressed: isReviewed
+                                ? null // ถ้าเคยรีวิวแล้วจะกดไม่ได้
+                                : () => _showReviewDialog(context, data, docId),
+                            icon: Icon(
+                              Icons.star_rounded,
+                              color: isReviewed ? Colors.grey : Colors.amber,
                             ),
-                            label: const Text('รีวิวร้านอาหาร'),
+                            label: Text(
+                              isReviewed
+                                  ? 'รีวิวเรียบร้อยแล้ว'
+                                  : 'รีวิวร้านอาหาร',
+                            ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).primaryColor,
-                              foregroundColor: Colors.white,
+                              backgroundColor: isReviewed
+                                  ? Colors.grey[300]
+                                  : Theme.of(context).primaryColor,
+                              foregroundColor: isReviewed
+                                  ? Colors.grey[600]
+                                  : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                           ),
                         ),
