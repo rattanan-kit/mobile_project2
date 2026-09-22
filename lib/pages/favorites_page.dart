@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/restaurant_model.dart';
-import '../services/auth_service.dart';
+import '../services/user_service.dart'; 
 
 class FavoritesPage extends StatelessWidget {
   const FavoritesPage({super.key});
@@ -21,7 +21,6 @@ class FavoritesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('ร้านโปรดของฉัน 💖')),
       body: StreamBuilder<DocumentSnapshot>(
-        // 1. ฟังข้อมูล User เพื่อเอา Array 'favorites'
         stream: FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
@@ -33,7 +32,6 @@ class FavoritesPage extends StatelessWidget {
 
           List<dynamic> favorites = [];
           if (userSnapshot.hasData && userSnapshot.data!.exists) {
-            // ป้องกัน Error กรณี field favorites หายไป
             try {
               favorites = userSnapshot.data!.get('favorites') ?? [];
             } catch (e) {
@@ -47,14 +45,10 @@ class FavoritesPage extends StatelessWidget {
             );
           }
 
-          // 2. เอา Array มาค้นหาร้านอาหารทั้งหมดที่ตรงกับ ID
           return StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('restaurants')
-                .where(
-                  FieldPath.documentId,
-                  whereIn: favorites,
-                ) // ค้นหาเฉพาะ ID ที่อยู่ใน List
+                .where(FieldPath.documentId, whereIn: favorites)
                 .snapshots(),
             builder: (context, restSnapshot) {
               if (restSnapshot.connectionState == ConnectionState.waiting) {
@@ -78,27 +72,22 @@ class FavoritesPage extends StatelessWidget {
                       vertical: 8,
                     ),
                     child: ListTile(
-                      // --- แก้ไขการดึงรูปภาพตรงนี้ ---
                       leading: restaurant.images.isNotEmpty
                           ? Image.network(
-                              restaurant
-                                  .images[0], // ดึงรูปที่ 1 (Index 0) มาโชว์
+                              restaurant.images[0],
                               width: 50,
                               height: 50,
                               fit: BoxFit.cover,
                               errorBuilder: (c, o, s) =>
                                   const Icon(Icons.restaurant, size: 50),
                             )
-                          : const Icon(
-                              Icons.restaurant,
-                              size: 50,
-                            ), // กรณีไม่มีรูปเลย
+                          : const Icon(Icons.restaurant, size: 50),
                       title: Text(restaurant.name),
                       trailing: IconButton(
                         icon: const Icon(Icons.favorite, color: Colors.red),
                         onPressed: () {
-                          // กดหัวใจอีกรอบเพื่อเอาออกจากร้านโปรดได้เลยจากหน้านี้
-                          AuthService().toggleFavorite(restaurant.id);
+                          // แก้ไขให้มาเรียก UserService ตรงนี้
+                          UserService().toggleFavorite(restaurant.id);
                         },
                       ),
                     ),

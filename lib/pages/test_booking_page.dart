@@ -7,6 +7,7 @@ import '../models/restaurant_model.dart';
 import '../services/booking_service.dart';
 import 'favorites_page.dart';
 import 'restaurant_detail_page.dart'; // <-- เพิ่ม Import หน้า Detail ตรงนี้
+import '../services/user_service.dart';
 
 class TestBookingPage extends StatefulWidget {
   const TestBookingPage({super.key});
@@ -1634,7 +1635,7 @@ class _TestBookingPageState extends State<TestBookingPage> {
                                         color: isFav ? Colors.red : Colors.grey,
                                       ),
                                       onPressed: () {
-                                        AuthService().toggleFavorite(
+                                        UserService().toggleFavorite(
                                           restaurant.id,
                                         );
                                       },
