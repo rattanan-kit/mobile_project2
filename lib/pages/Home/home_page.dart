@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/restaurant_model.dart';
-import 'restaurant_detail_page.dart';
+import '../../models/restaurant_model.dart';
+import '../restaurant_detail_page.dart';
 import 'dummy_pages.dart'; // ดึงหน้าชั่วคราวมาใช้
+import 'search_page.dart'; // ดึงหน้าค้นหามาใช้
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -35,7 +36,6 @@ class HomePage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // จุดแก้ 1: ป้องกันชื่อสถานยาวจนทะลุจอ
                           Expanded(
                             child: Row(
                               children: const [
@@ -47,7 +47,7 @@ class HomePage extends StatelessWidget {
                                 SizedBox(width: 4),
                                 Flexible(
                                   child: Text(
-                                    'ท่าคอย, เพชรบุรี',
+                                    'กรุงเทพ, ',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 14,
@@ -79,26 +79,6 @@ class HomePage extends StatelessWidget {
                                     ),
                                   );
                                 },
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ProfileSettingsPage(),
-                                    ),
-                                  );
-                                },
-                                child: const CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: Colors.white24,
-                                  child: Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
                               ),
                             ],
                           ),
@@ -155,7 +135,6 @@ class HomePage extends StatelessWidget {
                           const SizedBox(width: 16),
                           const Icon(Icons.search, color: Colors.grey),
                           const SizedBox(width: 12),
-                          // จุดแก้ 3: ป้องกันข้อความค้นหาดันไอคอน
                           Expanded(
                             child: Text(
                               'ค้นหาร้านอาหารโปรดร้านถัดไปของคุณ',
