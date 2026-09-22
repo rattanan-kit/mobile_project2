@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import '../models/restaurant_model.dart'; 
+import 'restaurant_detail_page.dart';
+import 'profile_page.dart';
+import 'my_bookings_page.dart';
 // ==========================================
 // 1. หน้า MainScreen
 // ==========================================
@@ -16,8 +19,8 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const Center(child: Text('หน้าการจองของฉัน (รอสร้าง)')),
-    const Center(child: Text('หน้าโปรไฟล์ (รอสร้าง)')),
+    const MyBookingsPage(),
+    const ProfilePage(),
   ];
 
   @override
@@ -149,7 +152,7 @@ class HomePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'สวัสดี รัฐนันท์',
+                        'สวัสดี คุณ',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -349,14 +352,11 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // ใช้ SizedBox กำหนดความสูงให้ ListView แนวนอน
             SizedBox(
-              height: 210, // ความสูงของการ์ด
+              height: 210,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(
-                  right: 20,
-                ), // เว้นขอบขวาตอนเลื่อนสุด
+                padding: const EdgeInsets.only(right: 20),
                 children: [
                   _buildRecommendedCard(
                     context,
@@ -445,6 +445,7 @@ class HomePage extends StatelessWidget {
                       name,
                       description,
                       imageUrl,
+                      data, // <-- 3. ส่งข้อมูล data ทั้งก้อนเข้าไปด้วย
                     );
                   },
                 );
@@ -552,9 +553,8 @@ class HomePage extends StatelessWidget {
     required String imageUrl,
   }) {
     return Container(
-      // บังคับความกว้างให้เป็น 85% ของจอ เพื่อให้เห็นการ์ดใบถัดไปโผล่มานิดๆ
       width: MediaQuery.of(context).size.width * 0.85,
-      margin: const EdgeInsets.only(left: 20), // เว้นแค่ขอบซ้าย
+      margin: const EdgeInsets.only(left: 20),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: const Color(0xFFFFF3E0),
@@ -642,6 +642,7 @@ class HomePage extends StatelessWidget {
     String name,
     String description,
     String imageUrl,
+    Map<String, dynamic> data, // <-- 4. รับค่าข้อมูลดิบมาด้วย
   ) {
     return Container(
       margin: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
@@ -661,7 +662,36 @@ class HomePage extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () {
-            print("ผู้ใช้กดเลือกร้าน ID: $id");
+            // --- 5. ดึงข้อมูลจาก Firestore มาประกอบร่างเป็น Model ---
+            // ถ้าดึงแล้วไม่มีค่า ให้ตั้งค่า Default สมมติกันแอปพังไปก่อน
+            final restaurantData = RestaurantModel(
+              id: id,
+              name: name,
+              description: description,
+              lat: (data['lat'] ?? 13.0234)
+                  .toDouble(), // ดึง lat ถ้าไม่มีใส่ค่าสมมติ
+              lng: (data['lng'] ?? 99.9912)
+                  .toDouble(), // ดึง lng ถ้าไม่มีใส่ค่าสมมติ
+              address: data['address'] ?? 'ไม่ระบุที่อยู่',
+              phoneNumber: data['phoneNumber'] ?? '-',
+              images: imageUrl.isNotEmpty ? [imageUrl] : [],
+              tags: data['tags'] != null
+                  ? List<String>.from(data['tags'])
+                  : ['แนะนำ'],
+              rating: (data['rating'] ?? 4.5).toDouble(),
+              reviewCount: data['reviewCount'] ?? 0,
+              capacityPerSlot: data['capacityPerSlot'] ?? 0,
+              socialLinks: data['socialLinks'] ?? {},
+            );
+
+            // --- 6. สั่งเปลี่ยนไปหน้า Detail พร้อมหิ้วข้อมูลร้านไปด้วย ---
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    RestaurantDetailPage(restaurant: restaurantData),
+              ),
+            );
           },
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
