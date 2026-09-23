@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../models/restaurant_model.dart';
+import '../../../services/booking_service.dart';
 
 class BookingBottomSheetWidget extends StatefulWidget {
   final RestaurantModel restaurant;
@@ -39,9 +40,11 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
         _selectedDate.year == now.year &&
         _selectedDate.month == now.month &&
         _selectedDate.day == now.day;
+
     if (isToday) {
       return allSlots.where((time) {
         int hour = int.parse(time.split(':')[0]);
+        // เช็กเวลาจากเครื่อง ถ้าเวลาผ่านไปแล้ว จะไม่คืนค่ารอบเวลานั้น
         return hour > now.hour;
       }).toList();
     }
@@ -76,34 +79,40 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
   }
 
   Future<void> _submitBooking() async {
+    if (_selectedTime == null) return;
+
     setState(() => _isLoading = true);
     try {
       String dbDate =
           "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
       final currentUser = FirebaseAuth.instance.currentUser;
 
-      await FirebaseFirestore.instance.collection('bookings').add({
-        'restaurantId': widget.restaurant.id,
-        'restaurantName': widget.restaurant.name,
-        'date': dbDate,
-        'time': _selectedTime,
-        'guestCount': _guestCount,
-        'status': 'confirmed',
-        'userId': currentUser?.uid ?? 'unknown',
-        'createdAt': FieldValue.serverTimestamp(),
-        'userName':
-            currentUser?.displayName ?? currentUser?.email ?? 'ไม่ระบุชื่อ',
-        'userEmail': currentUser?.email,
-      });
+      // เรียกใช้งาน BookingService
+      bool isSuccess = await BookingService().createBooking(
+        restaurantId: widget.restaurant.id,
+        userId: currentUser?.uid ?? 'unknown',
+        date: dbDate,
+        timeSlot: _selectedTime!,
+        partySize: _guestCount,
+      );
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('จองโต๊ะสำเร็จแล้ว!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        if (isSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('จองโต๊ะสำเร็จแล้ว!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('จองไม่สำเร็จ (รอบเวลาอาจเต็ม หรือคุณมีคิวแล้ว)'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -293,13 +302,33 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                     builder: (context, snapshot) {
                       if (!snapshot.hasData)
                         return const Center(child: CircularProgressIndicator());
+
                       Map<String, int> bookedSeatsPerSlot = {};
+
                       for (var doc in snapshot.data!.docs) {
-                        String time = doc['time'];
-                        int guests = doc['guestCount'] ?? 0;
-                        bookedSeatsPerSlot[time] =
-                            (bookedSeatsPerSlot[time] ?? 0) + guests;
+                        // แปลงข้อมูลให้เป็น Map เพื่อง่ายต่อการดึงและเช็ก field
+                        Map<String, dynamic> data =
+                            doc.data() as Map<String, dynamic>;
+
+                        // 1. ดึงสถานะ
+                        String status = data.containsKey('status')
+                            ? data['status']
+                            : '';
+
+                        // 2. ถ้ายกเลิกคิวไปแล้ว (cancelled) ให้ข้ามไป ไม่ต้องบวกยอดคนเพิ่ม
+                        if (status == 'cancelled') {
+                          continue;
+                        }
+
+                        // 3. ถ้าเป็นสถานะอื่น (เช่น confirmed, completed) ถึงจะนับจำนวน
+                        String time = data['time'] ?? '';
+                        int guests = data['guestCount'] ?? 0;
+                        if (time.isNotEmpty) {
+                          bookedSeatsPerSlot[time] =
+                              (bookedSeatsPerSlot[time] ?? 0) + guests;
+                        }
                       }
+
                       return Wrap(
                         spacing: 12,
                         runSpacing: 12,
@@ -309,6 +338,7 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                               widget.restaurant.capacityPerSlot - booked;
                           bool isNotEnoughSeats = _guestCount > remainingSeats;
                           bool isSelected = _selectedTime == time;
+
                           return ChoiceChip(
                             label: Column(
                               children: [

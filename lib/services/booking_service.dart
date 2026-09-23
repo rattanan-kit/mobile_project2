@@ -11,7 +11,6 @@ class BookingService {
     required int partySize,
   }) async {
     try {
-
       // --- ด่านที่ 1: ป้องกันจำนวนคนผิดปกติ ---
       if (partySize <= 0) {
         print('❌ จองไม่ได้! จำนวนคนต้องมากกว่า 0');
@@ -31,7 +30,10 @@ class BookingService {
           .collection('bookings')
           .where('userId', isEqualTo: userId)
           .where('date', isEqualTo: date)
-          .where('timeSlot', isEqualTo: timeSlot)
+          .where(
+            'time',
+            isEqualTo: timeSlot,
+          ) // แก้ไข: อิงชื่อ Field 'time'[cite: 1]
           .where('status', isEqualTo: 'confirmed')
           .get();
 
@@ -57,13 +59,17 @@ class BookingService {
           .collection('bookings')
           .where('restaurantId', isEqualTo: restaurantId)
           .where('date', isEqualTo: date)
-          .where('timeSlot', isEqualTo: timeSlot)
+          .where(
+            'time',
+            isEqualTo: timeSlot,
+          ) // แก้ไข: อิงชื่อ Field 'time'[cite: 1]
           .where('status', isEqualTo: 'confirmed')
           .get();
 
       int currentBookedSeats = 0;
       for (var doc in restaurantBookings.docs) {
-        currentBookedSeats += (doc['partySize'] as num).toInt();
+        // แก้ไข: อิงชื่อ Field 'guestCount'[cite: 1, 2]
+        currentBookedSeats += (doc['guestCount'] as num).toInt();
       }
 
       // 4.3 เช็กว่าที่นั่งเหลือพอไหม
@@ -74,7 +80,6 @@ class BookingService {
       }
 
       // --- ด่านที่ 5: ดึงข้อมูลโปรไฟล์ลูกค้า (เพื่อฝังชื่อและเบอร์ลงในบิล) ---
-      // วางไว้ตรงนี้เพื่อประหยัดโควตาอ่าน DB ถ้าด่านก่อนหน้าไม่ผ่านจะได้ไม่ดึงฟรี
       DocumentSnapshot userProfile = await _db
           .collection('users')
           .doc(userId)
@@ -90,12 +95,15 @@ class BookingService {
       // --- ผ่านหมดทุกด่าน: บันทึกลง Database พร้อมชื่อและเบอร์ ---
       await _db.collection('bookings').add({
         'restaurantId': restaurantId,
+        'restaurantName':
+            restaurantDoc['name'] ??
+            'ไม่ระบุชื่อร้าน', // เติมไว้เผื่อ UI ต้องแสดงชื่อร้าน
         'userId': userId,
-        'customerName': customerName, 
-        'customerPhone': customerPhone, 
+        'customerName': customerName,
+        'customerPhone': customerPhone,
         'date': date,
-        'timeSlot': timeSlot,
-        'partySize': partySize,
+        'time': timeSlot, // แก้ไข: บันทึกเป็น time[cite: 1]
+        'guestCount': partySize, // แก้ไข: บันทึกเป็น guestCount[cite: 1, 2]
         'status': 'confirmed',
         'createdAt': FieldValue.serverTimestamp(),
       });
