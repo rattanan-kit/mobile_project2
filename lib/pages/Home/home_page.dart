@@ -3,8 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_project2/pages/Home/deal_page.dart';
 import '../../models/restaurant_model.dart';
 import '../restaurant_detail_page.dart';
-import 'dummy_pages.dart'; 
-import 'search_page.dart'; 
+import 'search_page.dart';
 import '../favorites_page.dart';
 import 'random_restaurant_page.dart';
 import 'article_page.dart';
@@ -19,7 +18,9 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 1. ส่วน Header (สีส้ม) และแถบค้นหา ---
+            // ==========================================
+            // 1. ส่วน Header (สีส้ม) และแถบค้นหา
+            // ==========================================
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -67,29 +68,23 @@ class HomePage extends StatelessWidget {
                               ],
                             ),
                           ),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.favorite_border,
-                                  color: Colors.white,
+                          IconButton(
+                            icon: const Icon(
+                              Icons.favorite_border,
+                              color: Colors.white,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const FavoritesPage(),
                                 ),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const FavoritesPage(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      // จุดแก้ 2: ป้องกันชื่อ User ยาวทะลุจอ
                       const Text(
                         'สวัสดี คุณ',
                         style: TextStyle(
@@ -159,7 +154,9 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 48),
 
-            // --- 2. ส่วนเมนู 4 ช่อง ---
+            // ==========================================
+            // 2. ส่วนเมนู 4 ช่อง
+            // ==========================================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
@@ -203,7 +200,8 @@ class HomePage extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const RandomRestaurantPage(),
+                                builder: (context) =>
+                                    const RandomRestaurantPage(),
                               ),
                             );
                           },
@@ -259,10 +257,11 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // --- 3. หมวดหมู่ร้านอาหาร ---
+            // ==========================================
+            // 3. หมวดหมู่ร้านอาหาร (แก้ไขให้กดไปหน้า Search ได้)
+            // ==========================================
             SizedBox(
-              height:
-                  110, // จุดแก้ 4: ปรับความสูงจาก 90 เป็น 110 ป้องกันขอบล่างทะลุ 1 pixel
+              height: 110,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -282,26 +281,46 @@ class HomePage extends StatelessWidget {
                   _buildCategoryItem(
                     context,
                     'นานาชาติ',
-                    'https://images.unsplash.com/photo-1544025162-835002bdf603?q=80&w=200&auto=format&fit=crop',
+                    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfMxynDcDM3qZjgxINHwOOstD3c2qetBusmdteybs6pA&s=10',
                   ),
                   const SizedBox(width: 16),
                   _buildCategoryItem(
                     context,
-                    'อิตาเลียน',
+                    'พิซซ่า',
                     'https://images.unsplash.com/photo-1551183053-bf91a1d81141?q=80&w=200&auto=format&fit=crop',
                   ),
                   const SizedBox(width: 16),
                   _buildCategoryItem(
                     context,
-                    'ฟิวชั่น',
-                    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=200&auto=format&fit=crop',
+                    'เบอร์เกอร์',
+                    'https://cdn.apartmenttherapy.info/image/upload/f_jpg,q_auto:eco,c_fill,g_auto,w_1500,ar_4:3/tk%2Fphoto%2F2025%2F06-2025%2F2025-06-burger-doneness-guide%2Fburger-doneness-guide-0195',
+                  ),
+                  const SizedBox(width: 16),
+                  _buildCategoryItem(
+                    context,
+                    'สเต๊ก',
+                    'https://theblackfarmer.com/cdn/shop/files/cookedBeefTomahawkSteak_31.7oz_900g_2048x.jpg?v=1773327176',
+                  ),
+                  const SizedBox(width: 16),
+                  _buildCategoryItem(
+                    context,
+                    'คาเฟ่',
+                    'https://raw.githubusercontent.com/aphipatb/photo/main/1.jpg',
+                  ),
+                  const SizedBox(width: 16),
+                  _buildCategoryItem(
+                    context,
+                    'เครื่องดื่ม',
+                    'https://raw.githubusercontent.com/aphipatb/photo/main/2.jpg',
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 32),
 
-            // --- 4. ร้านแนะนำห้ามพลาด ---
+            // ==========================================
+            // 4. ร้านแนะนำห้ามพลาด (ดึงจาก Firebase เรียงตามคะแนน)
+            // ==========================================
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
@@ -313,43 +332,39 @@ class HomePage extends StatelessWidget {
 
             SizedBox(
               height: 210,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(right: 20),
-                children: [
-                  _buildRecommendedCard(
-                    context,
-                    title: 'SOI',
-                    desc:
-                        'สัมผัสรสชาติอาหารไทยแท้ ในบรรยากาศร้านสไตล์โมเดิร์น พร้อมเมนูเด็ดอย่างแกงพะแนง และสตรีทฟู้ดพรีเมียม',
-                    time: '06:30 - 23:00',
-                    imageUrl:
-                        'https://images.unsplash.com/photo-1559314809-0d155014e29e?q=80&w=400&auto=format&fit=crop',
-                  ),
-                  _buildRecommendedCard(
-                    context,
-                    title: 'SUSHI',
-                    desc:
-                        'โอมากาเสะพรีเมียม วัตถุดิบส่งตรงจากตลาดปลาโทโยสุ โตเกียว สดใหม่ทุกวันเหมือนบินไปกินที่ญี่ปุ่น',
-                    time: '11:00 - 22:00',
-                    imageUrl:
-                        'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=400&auto=format&fit=crop',
-                  ),
-                  _buildRecommendedCard(
-                    context,
-                    title: 'STEAK',
-                    desc:
-                        'สเต็กเนื้อดรายเอจ 45 วัน ย่างบนเตาถ่านไม้หอมกรุ่น ละลายในปาก พร้อมไวน์ชั้นเลิศ',
-                    time: '17:00 - 24:00',
-                    imageUrl:
-                        'https://images.unsplash.com/photo-1544025162-835002bdf603?q=80&w=400&auto=format&fit=crop',
-                  ),
-                ],
+              child: StreamBuilder<QuerySnapshot>(
+                // ดึง 5 ร้านที่คะแนนสูงสุดมาโชว์
+                stream: FirebaseFirestore.instance
+                    .collection('restaurants')
+                    .orderBy('rating', descending: true)
+                    .limit(5)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text("ไม่มีข้อมูลร้านแนะนำ"));
+                  }
+
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.only(right: 20),
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      var doc = snapshot.data!.docs[index];
+                      var data = doc.data() as Map<String, dynamic>;
+                      return _buildRecommendedCard(context, doc.id, data);
+                    },
+                  );
+                },
               ),
             ),
             const SizedBox(height: 32),
 
-            // --- 5. ร้านยอดนิยม (ดึงจาก Firestore) ---
+            // ==========================================
+            // 5. ร้านยอดนิยม (UI ดีไซน์ใหม่)
+            // ==========================================
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
@@ -367,11 +382,6 @@ class HomePage extends StatelessWidget {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text("เกิดข้อผิดพลาดในการโหลดข้อมูล"),
-                  );
-                }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(child: Text("ยังไม่มีร้านอาหารในระบบ"));
                 }
@@ -382,30 +392,9 @@ class HomePage extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: restaurants.length,
                   itemBuilder: (context, index) {
-                    var data =
-                        restaurants[index].data() as Map<String, dynamic>;
-                    String id = restaurants[index].id;
-                    String name = data['name'] ?? 'ไม่มีชื่อร้าน';
-                    String description = data['description'] ?? '';
-                    String imageUrl = '';
-
-                    if (data['imageUrl'] != null) {
-                      if (data['imageUrl'] is List &&
-                          data['imageUrl'].isNotEmpty) {
-                        imageUrl = data['imageUrl'][0];
-                      } else if (data['imageUrl'] is String) {
-                        imageUrl = data['imageUrl'];
-                      }
-                    }
-
-                    return _buildRestaurantCard(
-                      context,
-                      id,
-                      name,
-                      description,
-                      imageUrl,
-                      data,
-                    );
+                    var doc = restaurants[index];
+                    var data = doc.data() as Map<String, dynamic>;
+                    return _buildModernRestaurantCard(context, doc.id, data);
                   },
                 );
               },
@@ -431,7 +420,6 @@ class HomePage extends StatelessWidget {
   ) {
     return Expanded(
       child: Material(
-        // จุดแก้ 5: ครอบ InkWell ด้วย Material สีโปร่งใส เพื่อแก้ UI พังจอแดง
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
@@ -474,7 +462,15 @@ class HomePage extends StatelessWidget {
     String imageUrl,
   ) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        // เมื่อกดหมวดหมู่ ให้ส่งคำค้นหาไปหน้า SearchPage
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SearchPage(initialQuery: title),
+          ),
+        );
+      },
       child: Column(
         children: [
           Container(
@@ -505,127 +501,148 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  // 🛠️ อัปเดต: การ์ดแนะนำดึงข้อมูลจาก DB แล้วประกอบร่างเป็น Model เพื่อให้กดดู Detail ได้
   Widget _buildRecommendedCard(
-    BuildContext context, {
-    required String title,
-    required String desc,
-    required String time,
-    required String imageUrl,
-  }) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.85,
-      margin: const EdgeInsets.only(left: 20),
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E0),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 5,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFD84315),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    desc,
-                    style: const TextStyle(fontSize: 11, height: 1.5),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: Colors.grey,
+    BuildContext context,
+    String id,
+    Map<String, dynamic> data,
+  ) {
+    String name = data['name'] ?? 'ไม่มีชื่อ';
+    String desc = data['description'] ?? '';
+
+    List<String> images = [];
+    if (data['imageUrl'] != null) {
+      if (data['imageUrl'] is List)
+        images = List<String>.from(data['imageUrl']);
+      else if (data['imageUrl'] is String)
+        images = [data['imageUrl']];
+    }
+    String coverImg = images.isNotEmpty ? images[0] : '';
+
+    return GestureDetector(
+      onTap: () {
+        final restaurantData = RestaurantModel(
+          id: id,
+          name: name,
+          description: desc,
+          lat: (data['lat'] ?? 13.0).toDouble(),
+          lng: (data['lng'] ?? 99.0).toDouble(),
+          address: data['address'] ?? '',
+          phoneNumber: data['phoneNumber'] ?? '-',
+          images: images,
+          tags: data['tags'] != null ? List<String>.from(data['tags']) : [],
+          rating: (data['rating'] ?? 4.5).toDouble(),
+          reviewCount: data['reviewCount'] ?? 0,
+          capacityPerSlot: data['capacityPerSlot'] ?? 0,
+          socialLinks: data['socialLinks'] ?? {},
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                RestaurantDetailPage(restaurant: restaurantData),
+          ),
+        );
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.85,
+        margin: const EdgeInsets.only(left: 20),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF3E0),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 5,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFD84315),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        time,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      desc,
+                      style: const TextStyle(fontSize: 11, height: 1.5),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, size: 14, color: Colors.orange),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${data['rating'] ?? 'N/A'}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black87,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(80, 30),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      ],
                     ),
-                    child: const Text(
-                      'Book Now',
-                      style: TextStyle(fontSize: 11),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          Expanded(
-            flex: 4,
-            child: SizedBox(
-              height: 210,
-              child: Image.network(imageUrl, fit: BoxFit.cover),
+            Expanded(
+              flex: 4,
+              child: SizedBox(
+                height: 210,
+                child: coverImg.isNotEmpty
+                    ? Image.network(coverImg, fit: BoxFit.cover)
+                    : Container(
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.restaurant),
+                      ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-Widget _buildRestaurantCard(
+  // 🛠️ อัปเดต: การ์ดร้านยอดนิยม ดีไซน์ใหม่ ใหญ่และสวยขึ้น
+  Widget _buildModernRestaurantCard(
     BuildContext context,
     String id,
-    String name,
-    String description,
-    String imageUrl, // ตัวแปรนี้คือรูปหน้าปก (ถ้ามี)
     Map<String, dynamic> data,
   ) {
-    // 🛠️ 1. เพิ่มโค้ดดึงรูปภาพทั้งหมดออกมาเป็น List
+    String name = data['name'] ?? 'ไม่มีชื่อร้าน';
+    String description = data['description'] ?? '';
+
     List<String> allImages = [];
     if (data['imageUrl'] != null) {
-      if (data['imageUrl'] is List) {
-        allImages = List<String>.from(data['imageUrl']); // ดึงมาให้หมดทุก Index
-      } else if (data['imageUrl'] is String) {
+      if (data['imageUrl'] is List)
+        allImages = List<String>.from(data['imageUrl']);
+      else if (data['imageUrl'] is String)
         allImages = [data['imageUrl']];
-      }
     }
-
-    // เผื่อรูปหน้าปกไว้โชว์ในการ์ด
     String coverImage = allImages.isNotEmpty ? allImages[0] : '';
 
     return Container(
-      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
+      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -638,21 +655,17 @@ Widget _buildRestaurantCard(
               id: id,
               name: name,
               description: description,
-              lat: (data['lat'] ?? 13.0234).toDouble(),
-              lng: (data['lng'] ?? 99.9912).toDouble(),
-              address: data['address'] ?? 'ไม่ระบุที่อยู่',
+              lat: (data['lat'] ?? 13.0).toDouble(),
+              lng: (data['lng'] ?? 99.0).toDouble(),
+              address: data['address'] ?? '',
               phoneNumber: data['phoneNumber'] ?? '-',
-              // 🛠️ 2. เปลี่ยนให้ส่ง List รูปภาพทั้งหมดเข้าไปแทน
               images: allImages,
-              tags: data['tags'] != null
-                  ? List<String>.from(data['tags'])
-                  : ['แนะนำ'],
+              tags: data['tags'] != null ? List<String>.from(data['tags']) : [],
               rating: (data['rating'] ?? 4.5).toDouble(),
               reviewCount: data['reviewCount'] ?? 0,
               capacityPerSlot: data['capacityPerSlot'] ?? 0,
               socialLinks: data['socialLinks'] ?? {},
             );
-
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -661,103 +674,116 @@ Widget _buildRestaurantCard(
               ),
             );
           },
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // รูปภาพด้านบนเต็มความกว้าง
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
                 ),
-                child:
-                    coverImage
-                        .isNotEmpty // 🛠️ 3. ใช้ coverImage ตรงนี้แทน
-                    ? Image.network(
-                        coverImage,
-                        width: 110,
-                        height: 110,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          width: 110,
-                          height: 110,
-                          color: Colors.grey[300],
-                          child: const Icon(
-                            Icons.broken_image,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      )
-                    : Container(
-                        width: 110,
-                        height: 110,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.restaurant, color: Colors.grey),
-                      ),
-              ),
-              // ... โค้ดส่วน Expanded ข้อมูลร้านด้านล่างปล่อยไว้เหมือนเดิมเป๊ะๆ ครับ
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        description,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: const [
-                              Icon(Icons.star, color: Colors.orange, size: 16),
-                              SizedBox(width: 4),
-                              Text(
-                                '4.8',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                child: Stack(
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: coverImage.isNotEmpty
+                          ? Image.network(coverImage, fit: BoxFit.cover)
+                          : Container(
+                              color: Colors.grey[200],
+                              child: const Icon(
+                                Icons.restaurant,
+                                color: Colors.grey,
+                                size: 50,
                               ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
                             ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
+                    ),
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 16,
                             ),
-                            child: Text(
-                              'จองโต๊ะ',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontSize: 12,
+                            const SizedBox(width: 4),
+                            Text(
+                              '${data['rating'] ?? 'N/A'}',
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
+                                fontSize: 13,
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
+              ),
+              // ข้อมูลด้านล่าง
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'จองโต๊ะ',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                        height: 1.4,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ],

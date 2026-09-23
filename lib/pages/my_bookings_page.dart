@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_page.dart';
+import '../services/review_service.dart'; // 🛠️ Import Service ตัวใหม่เข้ามา
 
 class MyBookingsPage extends StatelessWidget {
   const MyBookingsPage({super.key});
 
+  // ==========================================
   // ฟังก์ชันสำหรับอัปเดตสถานะใน Firestore
+  // ==========================================
   Future<void> _updateBookingStatus(
     BuildContext context,
     String docId,
@@ -164,28 +167,19 @@ class MyBookingsPage extends StatelessWidget {
                           if (user == null) return;
 
                           try {
-                            // 1. บันทึกรีวิวไปยังคอลเลกชัน reviews ใน Firestore
-                            await FirebaseFirestore.instance
-                                .collection('reviews')
-                                .add({
-                                  'bookingId': bookingId,
-                                  'restaurantId': restaurantId,
-                                  'restaurantName': restaurantName,
-                                  'userId': user.uid,
-                                  'userName': user.displayName ?? 'ผู้ใช้งาน',
-                                  'rating': selectedRating,
-                                  'comment': commentController.text.trim(),
-                                  'createdAt': FieldValue.serverTimestamp(),
-                                });
-
-                            // 2. อัปเดตการจองว่าถูกรีวิวแล้ว
-                            await FirebaseFirestore.instance
-                                .collection('bookings')
-                                .doc(bookingId)
-                                .update({'isReviewed': true});
+                            // 🛠️ เรียกใช้งาน ReviewService สำหรับส่งรีวิวและคำนวณดาว
+                            await ReviewService().submitReviewAndUpdateRating(
+                              bookingId: bookingId,
+                              restaurantId: restaurantId,
+                              restaurantName: restaurantName,
+                              userId: user.uid,
+                              userName: user.displayName ?? 'ผู้ใช้งาน',
+                              rating: selectedRating,
+                              comment: commentController.text.trim(),
+                            );
 
                             if (context.mounted) {
-                              Navigator.pop(context);
+                              Navigator.pop(context); // ปิด Pop-up
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
@@ -234,6 +228,7 @@ class MyBookingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
+    // --- กรณีที่ยังไม่ล็อกอิน ---
     if (user == null) {
       return Scaffold(
         backgroundColor: Colors.grey[100],
@@ -277,6 +272,7 @@ class MyBookingsPage extends StatelessWidget {
       );
     }
 
+    // --- กรณีที่ล็อกอินแล้ว โชว์รายการจอง ---
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -315,6 +311,7 @@ class MyBookingsPage extends StatelessWidget {
           }
 
           var bookings = snapshot.data!.docs.toList();
+          // เรียงลำดับจากล่าสุดไปเก่าสุด
           bookings.sort((a, b) {
             var dateA =
                 (a.data() as Map<String, dynamic>)['createdAt'] as Timestamp?;
@@ -371,6 +368,7 @@ class MyBookingsPage extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
@@ -433,7 +431,7 @@ class MyBookingsPage extends StatelessWidget {
                         ],
                       ),
 
-                      // ปุ่มควบคุมสำหรับสถานะ confirmed
+                      // --- ปุ่มควบคุมสำหรับสถานะ confirmed (รอยืนยัน) ---
                       if (status == 'confirmed') ...[
                         const SizedBox(height: 16),
                         Row(
@@ -497,7 +495,7 @@ class MyBookingsPage extends StatelessWidget {
                         ),
                       ],
 
-                      // ปุ่มกดเปิด Pop-up รีวิวเมื่อสถานะเป็น completed
+                      // --- ปุ่มกดเปิด Pop-up รีวิวเมื่อสถานะเป็น completed ---
                       if (status == 'completed') ...[
                         const SizedBox(height: 16),
                         SizedBox(

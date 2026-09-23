@@ -4,15 +4,68 @@ import '../../models/restaurant_model.dart';
 import '../restaurant_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final String? initialQuery;
+
+  const SearchPage({super.key, this.initialQuery});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
-  // ตัวแปรเก็บข้อความที่ผู้ใช้กำลังพิมพ์
-  String _searchQuery = '';
+  late String _searchQuery;
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchQuery = (widget.initialQuery ?? '').toLowerCase();
+    _controller = TextEditingController(text: widget.initialQuery ?? '');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // ==========================================
+  // 🛠️ พจนานุกรมคำพ้องความหมาย (Dictionary)
+  // ==========================================
+  List<String> _getSearchTerms(String query) {
+    if (query.isEmpty) return [];
+
+    // เริ่มต้นด้วยคำที่ผู้ใช้พิมพ์มา
+    List<String> terms = [query];
+
+    // กำหนดคำพ้องความหมาย
+    Map<String, List<String>> dictionary = {
+      'ญี่ปุ่น': ['japan', 'japanese'],
+      'japan': ['ญี่ปุ่น', 'japanese'],
+      'japanese': ['ญี่ปุ่น', 'japan'],
+      'ไทย': ['thai'],
+      'thai': ['ไทย'],
+      'นานาชาติ': ['international'],
+      'international': ['นานาชาติ'],
+      'อิตาเลียน': ['italian', 'italy'],
+      'italian': ['อิตาเลียน', 'italy'],
+      'ฟิวชั่น': ['fusion'],
+      'fusion': ['ฟิวชั่น'],
+      'คาเฟ่': ['cafe', 'coffee', 'ร้านกาแฟ'],
+      'cafe': ['คาเฟ่', 'ร้านกาแฟ'],
+      'พิซซ่า': ['pizza'],
+      'pizza': ['พิซซ่า'],
+      'ปิ้งย่าง': ['grill', 'bbq', 'บาร์บีคิว'],
+      'ชาบู': ['shabu', 'hotpot'],
+    };
+
+    // ถ้าคำค้นหามีใน Dictionary ให้ดึงคำพ้องความหมายมาต่อท้ายลิสต์
+    if (dictionary.containsKey(query)) {
+      terms.addAll(dictionary[query]!);
+    }
+
+    return terms;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,16 +75,16 @@ class _SearchPageState extends State<SearchPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
-        // ช่องค้นหาบน AppBar
         title: TextField(
-          autofocus: true, // เปิดหน้ามาปุ๊บ คีย์บอร์ดเด้งรอเลย
+          controller: _controller,
+          autofocus:
+              widget.initialQuery == null || widget.initialQuery!.isEmpty,
           decoration: InputDecoration(
             hintText: 'ค้นหาชื่อร้านอาหาร, ประเภท...',
             border: InputBorder.none,
             hintStyle: TextStyle(color: Colors.grey[400]),
           ),
           onChanged: (value) {
-            // อัปเดตข้อความทันทีที่พิมพ์
             setState(() {
               _searchQuery = value.toLowerCase();
             });
@@ -42,17 +95,15 @@ class _SearchPageState extends State<SearchPage> {
             IconButton(
               icon: const Icon(Icons.clear, color: Colors.grey),
               onPressed: () {
-                // TODO: ต้องใช้ TextEditingController ถ้าอยากให้ลบข้อความในช่องพิมพ์ด้วย
-                // ตอนนี้ให้ล้างผลลัพธ์ไปก่อน
                 setState(() {
                   _searchQuery = '';
+                  _controller.clear();
                 });
               },
             ),
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // ดึงข้อมูลร้านอาหารทั้งหมดมาเตรียมไว้
         stream: FirebaseFirestore.instance
             .collection('restaurants')
             .snapshots(),
@@ -64,16 +115,36 @@ class _SearchPageState extends State<SearchPage> {
             return const Center(child: Text("ไม่มีข้อมูลร้านอาหาร"));
           }
 
-          // 🛠️ ระบบกรองข้อมูล (Filter)
+          // 🛠️ 1. ดึงคำค้นหาทั้งหมด (รวมคำพ้องความหมาย) มาใช้งาน
+          List<String> searchTerms = _getSearchTerms(_searchQuery);
+
+          // 🛠️ 2. ระบบกรองข้อมูลด้วย List ของคำค้นหา
           final restaurants = snapshot.data!.docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
             final name = (data['name'] ?? '').toString().toLowerCase();
             final desc = (data['description'] ?? '').toString().toLowerCase();
-            // เช็กว่าข้อความที่พิมพ์ มีอยู่ในชื่อร้าน หรือ รายละเอียดร้านไหม
-            return name.contains(_searchQuery) || desc.contains(_searchQuery);
+
+            List<String> tags = [];
+            if (data['tags'] != null) {
+              tags = List<String>.from(
+                data['tags'],
+              ).map((e) => e.toLowerCase()).toList();
+            }
+
+            // ถ้าช่องค้นหาว่าง ให้โชว์ร้านทั้งหมด
+            if (searchTerms.isEmpty) return true;
+
+            // เช็กว่า 'คำใดคำหนึ่ง' ใน searchTerms ไปตรงกับ ชื่อ, รายละเอียด หรือ Tag ไหม
+            bool matchNameOrDesc = searchTerms.any(
+              (term) => name.contains(term) || desc.contains(term),
+            );
+            bool matchTag = tags.any(
+              (tag) => searchTerms.any((term) => tag.contains(term)),
+            );
+
+            return matchNameOrDesc || matchTag;
           }).toList();
 
-          // ถ้าค้นหาแล้วไม่เจออะไรเลย
           if (restaurants.isEmpty) {
             return Center(
               child: Column(
@@ -90,7 +161,6 @@ class _SearchPageState extends State<SearchPage> {
             );
           }
 
-          // ถ้าเจอ แสดงผลเป็นรายการ
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: restaurants.length,
@@ -101,14 +171,15 @@ class _SearchPageState extends State<SearchPage> {
               String name = data['name'] ?? 'ไม่มีชื่อ';
               String desc = data['description'] ?? '';
 
-              String imageUrl = '';
+              List<String> allImages = [];
               if (data['imageUrl'] != null) {
-                if (data['imageUrl'] is List && data['imageUrl'].isNotEmpty) {
-                  imageUrl = data['imageUrl'][0];
+                if (data['imageUrl'] is List) {
+                  allImages = List<String>.from(data['imageUrl']);
                 } else if (data['imageUrl'] is String) {
-                  imageUrl = data['imageUrl'];
+                  allImages = [data['imageUrl']];
                 }
               }
+              String coverImage = allImages.isNotEmpty ? allImages[0] : '';
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
@@ -119,22 +190,19 @@ class _SearchPageState extends State<SearchPage> {
                 elevation: 2,
                 child: InkWell(
                   onTap: () {
-                    // แปลงเป็น Model ก่อนส่งไปหน้า Detail
                     final restaurantData = RestaurantModel(
                       id: id,
                       name: name,
                       description: desc,
-                      lat: (data['lat'] ?? 13.0).toDouble(),
-                      lng: (data['lng'] ?? 99.0).toDouble(),
-                      address: data['address'] ?? '',
+                      lat: (data['lat'] ?? 13.0234).toDouble(),
+                      lng: (data['lng'] ?? 99.9912).toDouble(),
+                      address: data['address'] ?? 'ไม่ระบุที่อยู่',
                       phoneNumber: data['phoneNumber'] ?? '-',
-                      images: data['imageUrl'] is List
-                          ? List<String>.from(data['imageUrl'])
-                          : (imageUrl.isNotEmpty ? [imageUrl] : []),
+                      images: allImages,
                       tags: data['tags'] != null
                           ? List<String>.from(data['tags'])
-                          : [],
-                      rating: (data['rating'] ?? 5.0).toDouble(),
+                          : ['แนะนำ'],
+                      rating: (data['rating'] ?? 4.5).toDouble(),
                       reviewCount: data['reviewCount'] ?? 0,
                       capacityPerSlot: data['capacityPerSlot'] ?? 0,
                       socialLinks: data['socialLinks'] ?? {},
@@ -149,12 +217,13 @@ class _SearchPageState extends State<SearchPage> {
                     );
                   },
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
                         width: 100,
                         height: 100,
-                        child: imageUrl.isNotEmpty
-                            ? Image.network(imageUrl, fit: BoxFit.cover)
+                        child: coverImage.isNotEmpty
+                            ? Image.network(coverImage, fit: BoxFit.cover)
                             : Container(
                                 color: Colors.grey[200],
                                 child: const Icon(
@@ -184,6 +253,7 @@ class _SearchPageState extends State<SearchPage> {
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 12,
+                                  height: 1.3,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
