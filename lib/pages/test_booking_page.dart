@@ -1739,17 +1739,7 @@ final List<Map<String, dynamic>> dummyData =  [
                                                 Icons.star,
                                                 color: Colors.amber,
                                               ),
-                                              onPressed: () async {
-                                                Navigator.pop(context);
-                                                await _restaurantService
-                                                    .submitRating(
-                                                      restaurantId:
-                                                          restaurant.id,
-                                                      userId: userId,
-                                                      score: (index + 1)
-                                                          .toDouble(),
-                                                    );
-                                              },
+                                              onPressed: () {}
                                             );
                                           }),
                                         ),

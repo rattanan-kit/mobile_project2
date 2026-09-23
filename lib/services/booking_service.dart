@@ -1,3 +1,19 @@
+/**
+ * ไฟล์นี้ทำหน้าที่เป็น Booking System
+ * รวม Business Logic และการตรวจสอบเงื่อนไขต่างๆ ก่อนบันทึกข้อมูลลง Firestore
+ * 
+ * ฟังก์ชันหลักในคลาส BookingService (มี 3 ส่วน):
+ * 1. [createBooking] : สร้างการจองใหม่ โดยมีระบบ Validation ตรวจสอบ 4 ด่าน:
+ *    - จำนวนคนต้องมากกว่า 0
+ *    - เวลาจองต้องไม่เป็นอดีต
+ *    - ผู้ใช้ต้องไม่มีคิวจองซ้ำในเวลาเดียวกัน
+ *    - คำนวณที่นั่งว่าง (โควตาร้าน - ยอดจองปัจจุบัน) ต้องเพียงพอ
+ *    (หากผ่าน จะไปดึงข้อมูลโปรไฟล์มาฝังในบิล และเซฟลงคอลเลกชัน 'bookings')
+ * 
+ * 2. [getUserBookings] : ดึงประวัติการจองทั้งหมดของ User นั้นๆ (ใช้แสดงในหน้า My Bookings)
+ * 3. [cancelBooking] : อัปเดตสถานะการจอง (status) เป็น 'cancelled' (ยกเลิก)
+ */
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BookingService {
@@ -30,10 +46,7 @@ class BookingService {
           .collection('bookings')
           .where('userId', isEqualTo: userId)
           .where('date', isEqualTo: date)
-          .where(
-            'time',
-            isEqualTo: timeSlot,
-          ) // แก้ไข: อิงชื่อ Field 'time'[cite: 1]
+          .where('time', isEqualTo: timeSlot) // อิงชื่อ Field 'time'
           .where('status', isEqualTo: 'confirmed')
           .get();
 
@@ -59,16 +72,13 @@ class BookingService {
           .collection('bookings')
           .where('restaurantId', isEqualTo: restaurantId)
           .where('date', isEqualTo: date)
-          .where(
-            'time',
-            isEqualTo: timeSlot,
-          ) // แก้ไข: อิงชื่อ Field 'time'[cite: 1]
+          .where('time', isEqualTo: timeSlot) // อิงชื่อ Field 'time'
           .where('status', isEqualTo: 'confirmed')
           .get();
 
       int currentBookedSeats = 0;
       for (var doc in restaurantBookings.docs) {
-        // แก้ไข: อิงชื่อ Field 'guestCount'[cite: 1, 2]
+        // อิงชื่อ Field 'guestCount'
         currentBookedSeats += (doc['guestCount'] as num).toInt();
       }
 
@@ -102,8 +112,8 @@ class BookingService {
         'customerName': customerName,
         'customerPhone': customerPhone,
         'date': date,
-        'time': timeSlot, // แก้ไข: บันทึกเป็น time[cite: 1]
-        'guestCount': partySize, // แก้ไข: บันทึกเป็น guestCount[cite: 1, 2]
+        'time': timeSlot, // บันทึกเป็น time
+        'guestCount': partySize, // บันทึกเป็น guestCount
         'status': 'confirmed',
         'createdAt': FieldValue.serverTimestamp(),
       });

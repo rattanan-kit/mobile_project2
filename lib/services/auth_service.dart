@@ -1,3 +1,13 @@
+/**
+ * และการตรวจสอบสิทธิ์การเข้าถึง โดยทำงานร่วมกับ Firebase Auth และ Cloud Firestore
+ * 
+ * 1. [isLoggedIn] (Getter) : ตรวจสอบสถานะว่ามีผู้ใช้งานล็อกอินอยู่หรือไม่ คืนค่าเป็น true/false
+ * 2. [requireAuth] : ตัวคุมสิทธิ์ (Auth Guard) ใช้ครอบฟีเจอร์สำคัญ ถ้ายังไม่ล็อกอินจะแจ้งเตือนและพาไปหน้า Login
+ * 3. [register] : สมัครสมาชิกใหม่ด้วย Email/Password พร้อมสร้าง Document เก็บประวัติในคอลเลกชัน 'users'
+ * 4. [login] : ตรวจสอบและเข้าสู่ระบบด้วย Email/Password
+ * 5. [logout] : ออกจากระบบ (Sign out) เคลียร์เซสชันของผู้ใช้ปัจจุบัน
+ */
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

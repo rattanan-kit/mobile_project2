@@ -1,3 +1,14 @@
+/**
+ * ไฟล์นี้ จัดการระบบการรีวิวและการคำนวณเรตติ้ง (Review & Rating System)
+ * โดยจะรวบรวม Business Logic สำหรับบันทึกรีวิวจากการจองจริง และอัปเดตคะแนนเฉลี่ยของร้านลง Firestore
+ * 
+ * ฟังก์ชันหลักในคลาส ReviewService :
+ * 1. [submitReviewAndUpdateRating] : บันทึกรีวิวผู้ใช้และคำนวณอัปเดตคะแนนดาวเฉลี่ยของร้าน
+ *    - บันทึกข้อความและคะแนนลงคอลเลกชัน 'reviews'
+ *    - อัปเดตสถานะรายการจองในคอลเลกชัน 'bookings' ว่ารีวิวแล้ว ('isReviewed': true)
+ *    - ใช้ Transaction คำนวณคะแนนเฉลี่ยและจำนวนคนรีวิวใหม่ เพื่ออัปเดตกลับไปยังคอลเลกชัน 'restaurants' 
+ */
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ReviewService {
