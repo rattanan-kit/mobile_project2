@@ -1,6 +1,6 @@
 name: mobile_project2
 description: "A new Flutter project."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none' 
 
 
 version: 1.0.0+1
@@ -12,6 +12,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flutter_launcher_icons: ^0.13.1 # App Icon
+  flutter_native_splash: ^2.4.1   # Native Splash
   cupertino_icons: ^1.0.8
   firebase_core: ^4.15.0
   firebase_auth: ^6.7.0
@@ -28,8 +30,20 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/
+
+    # --- ตั้งค่า App Icon ---
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/icon1.png"
+
+# --- ตั้งค่า Splash Screen ---
+flutter_native_splash:
+  color: "#FFFFFF" # สีพื้นหลัง
+  image: "assets/images/icon1.png" 
+  android_12:
+    image: "assets/images/icon1.png" 
