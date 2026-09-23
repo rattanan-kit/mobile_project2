@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/restaurant_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
-import 'widgets/menu_carousel.dart'; 
+import 'widgets/menu_carousel.dart';
 import 'widgets/booking_bottom_sheet.dart';
 
 class RestaurantDetailPage extends StatelessWidget {
@@ -58,23 +58,7 @@ class RestaurantDetailPage extends StatelessWidget {
                 ],
               ),
             ),
-            actions: [
-              Container(
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.favorite_border, color: Colors.white),
-                  onPressed: () {
-                    AuthService().requireAuth(context, () {
-                      UserService().toggleFavorite(restaurant.id);
-                    });
-                  },
-                ),
-              ),
-            ],
+            actions: [_FavoriteButton(restaurantId: restaurant.id)],
           ),
           SliverToBoxAdapter(
             child: Container(
@@ -405,7 +389,6 @@ class RestaurantDetailPage extends StatelessWidget {
                             }
 
                             var reviews = snapshot.data!.docs.toList();
-                            // เรียงให้รีวิวใหม่ล่าสุดอยู่ด้านบน
                             reviews.sort((a, b) {
                               var dateA =
                                   (a.data()
@@ -435,7 +418,6 @@ class RestaurantDetailPage extends StatelessWidget {
                                     .toInt();
                                 final comment = reviewData['comment'] ?? '';
 
-                                // สุ่มสีพื้นหลังรูปโปรไฟล์นิดหน่อยให้ดูมีสีสัน
                                 final colors = [
                                   Colors.blue[200]!,
                                   Colors.pink[200]!,
@@ -607,6 +589,41 @@ class RestaurantDetailPage extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _FavoriteButton extends StatelessWidget {
+  final String restaurantId;
+
+  const _FavoriteButton({super.key, required this.restaurantId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.3),
+        shape: BoxShape.circle,
+      ),
+      child: StreamBuilder<bool>(
+        stream: UserService().isFavoriteStream(restaurantId),
+        builder: (context, snapshot) {
+          final isFavorite = snapshot.data ?? false;
+
+          return IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: isFavorite ? Colors.red : Colors.white,
+            ),
+            onPressed: () {
+              AuthService().requireAuth(context, () {
+                UserService().toggleFavorite(restaurantId);
+              });
+            },
+          );
+        },
       ),
     );
   }

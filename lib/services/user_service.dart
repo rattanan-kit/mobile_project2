@@ -29,7 +29,8 @@ class UserService {
       }
     }
   }
-// --- 🛠️ 1. ฟังก์ชันดึงข้อมูลโปรไฟล์ ---
+
+  // --- 🛠️ 1. ฟังก์ชันดึงข้อมูลโปรไฟล์ ---
   Future<Map<String, dynamic>?> getUserData() async {
     String? uid = _auth.currentUser?.uid;
     if (uid == null) return null;
@@ -63,5 +64,18 @@ class UserService {
     }
   }
 
-}
+  // --- 🛠️ 3. ฟังก์ชันเช็กสถานะร้านโปรดแบบ Real-time ---
+  Stream<bool> isFavoriteStream(String restaurantId) {
+    String? uid = _auth.currentUser?.uid;
+    if (uid == null) return Stream.value(false);
 
+    return _db.collection('users').doc(uid).snapshots().map((snapshot) {
+      if (!snapshot.exists || snapshot.data() == null) return false;
+
+      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+      List<dynamic> favorites = data['favorites'] ?? [];
+
+      return favorites.contains(restaurantId);
+    });
+  }
+}
