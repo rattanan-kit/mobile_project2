@@ -6,7 +6,7 @@ import '../services/restaurant_service.dart';
 import '../models/restaurant_model.dart';
 import '../services/booking_service.dart';
 import 'favorites_page.dart';
-import 'restaurant_detail_page.dart'; // <-- เพิ่ม Import หน้า Detail ตรงนี้
+import 'Detail/restaurant_detail_page.dart'; // <-- เพิ่ม Import หน้า Detail ตรงนี้
 import '../services/user_service.dart';
 
 class TestBookingPage extends StatefulWidget {

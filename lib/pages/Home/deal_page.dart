@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/restaurant_model.dart';
 // TODO: เปลี่ยน path ให้ตรงกับที่เก็บไฟล์หน้าจองโต๊ะของคุณ
-import '../restaurant_detail_page.dart';
+import '../Detail/restaurant_detail_page.dart';
 
 class DealsPage extends StatelessWidget {
   const DealsPage({super.key});

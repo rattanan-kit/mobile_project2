@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/restaurant_model.dart';
-import '../restaurant_detail_page.dart';
+import '../Detail/restaurant_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
   final String? initialQuery;

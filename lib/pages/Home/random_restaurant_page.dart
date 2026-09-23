@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/restaurant_model.dart';
-import '../restaurant_detail_page.dart';
+import '../Detail/restaurant_detail_page.dart';
 
 class RandomRestaurantPage extends StatefulWidget {
   const RandomRestaurantPage({super.key});

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/restaurant_model.dart';
 import '../services/user_service.dart';
-import 'restaurant_detail_page.dart'; // อย่าลืม import หน้า Detail เพื่อให้กดเข้าไปดูได้
+import 'Detail/restaurant_detail_page.dart'; // อย่าลืม import หน้า Detail เพื่อให้กดเข้าไปดูได้
 
 class FavoritesPage extends StatelessWidget {
   const FavoritesPage({super.key});

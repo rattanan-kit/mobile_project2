@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../models/restaurant_model.dart';
-import '../services/auth_service.dart'; // <-- เพิ่ม Service
-import '../services/user_service.dart'; // <-- เพิ่ม Service
+import '../../models/restaurant_model.dart';
+import '../../services/auth_service.dart';
+import '../../services/user_service.dart';
+import 'widgets/menu_carousel.dart'; 
+import 'widgets/booking_bottom_sheet.dart';
 
 class RestaurantDetailPage extends StatelessWidget {
   final RestaurantModel restaurant;
@@ -67,7 +68,6 @@ class RestaurantDetailPage extends StatelessWidget {
                 child: IconButton(
                   icon: const Icon(Icons.favorite_border, color: Colors.white),
                   onPressed: () {
-                    // --- 🛠️ เพิ่มระบบเช็กล็อกอินและกดร้านโปรด ---
                     AuthService().requireAuth(context, () {
                       UserService().toggleFavorite(restaurant.id);
                     });
@@ -218,6 +218,7 @@ class RestaurantDetailPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
+
                   if (menuImages.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
@@ -233,6 +234,7 @@ class RestaurantDetailPage extends StatelessWidget {
                     MenuCarousel(images: menuImages),
                     const SizedBox(height: 30),
                   ],
+
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -328,7 +330,6 @@ class RestaurantDetailPage extends StatelessWidget {
                               size: 22,
                             ),
                             const SizedBox(width: 8),
-                            // --- 🛠️ เพิ่ม Expanded กันล้น เผื่อเบอร์โทรยาว ---
                             Expanded(
                               child: Text(
                                 restaurant.phoneNumber,
@@ -349,6 +350,10 @@ class RestaurantDetailPage extends StatelessWidget {
                       ],
                     ),
                   ),
+
+                  // ==========================================
+                  // ส่วนแสดงคอมเมนต์รีวิวจากผู้ใช้จริง (StreamBuilder)
+                  // ==========================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -371,22 +376,85 @@ class RestaurantDetailPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        _buildCommentItem(
-                          name: 'คุณ สมชาย ใจดี',
-                          time: '2 วันที่แล้ว',
-                          rating: 5,
-                          comment:
-                              'บรรยากาศดีมาก อาหารอร่อย พนักงานบริการดีเยี่ยม แนะนำเลย!',
-                          avatarColor: Colors.blue[200]!,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildCommentItem(
-                          name: 'แพรวา รักกิน',
-                          time: '1 สัปดาห์ที่แล้ว',
-                          rating: 4,
-                          comment:
-                              'สเต็กเนื้อนุ่มมาก แต่แอบหาที่จอดรถยากนิดนึงช่วงเย็น โดยรวมประทับใจค่ะ',
-                          avatarColor: Colors.pink[200]!,
+
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('reviews')
+                              .where('restaurantId', isEqualTo: restaurant.id)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+
+                            if (!snapshot.hasData ||
+                                snapshot.data!.docs.isEmpty) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 24),
+                                child: Center(
+                                  child: Text(
+                                    'ยังไม่มีรีวิวสำหรับร้านนี้\nมาเป็นคนแรกที่รีวิวสิ!',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            var reviews = snapshot.data!.docs.toList();
+                            // เรียงให้รีวิวใหม่ล่าสุดอยู่ด้านบน
+                            reviews.sort((a, b) {
+                              var dateA =
+                                  (a.data()
+                                          as Map<String, dynamic>)['createdAt']
+                                      as Timestamp?;
+                              var dateB =
+                                  (b.data()
+                                          as Map<String, dynamic>)['createdAt']
+                                      as Timestamp?;
+                              if (dateA == null || dateB == null) return 0;
+                              return dateB.compareTo(dateA);
+                            });
+
+                            return ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: reviews.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 16),
+                              itemBuilder: (context, index) {
+                                final reviewData =
+                                    reviews[index].data()
+                                        as Map<String, dynamic>;
+                                final userName =
+                                    reviewData['userName'] ?? 'ผู้ใช้งาน';
+                                final rating = (reviewData['rating'] ?? 5)
+                                    .toInt();
+                                final comment = reviewData['comment'] ?? '';
+
+                                // สุ่มสีพื้นหลังรูปโปรไฟล์นิดหน่อยให้ดูมีสีสัน
+                                final colors = [
+                                  Colors.blue[200]!,
+                                  Colors.pink[200]!,
+                                  Colors.orange[200]!,
+                                  Colors.green[200]!,
+                                ];
+                                final avatarColor =
+                                    colors[index % colors.length];
+
+                                return _buildCommentItem(
+                                  name: userName,
+                                  time: 'รีวิวใหม่',
+                                  rating: rating,
+                                  comment: comment,
+                                  avatarColor: avatarColor,
+                                );
+                              },
+                            );
+                          },
                         ),
                         const SizedBox(height: 40),
                       ],
@@ -426,7 +494,6 @@ class RestaurantDetailPage extends StatelessWidget {
                 elevation: 0,
               ),
               onPressed: () {
-                // --- 🛠️ ยุบโค้ดเช็ก Login ที่ยาวเหยียด ให้เหลือแค่บรรทัดเดียว! ---
                 AuthService().requireAuth(context, () {
                   showModalBottomSheet(
                     context: context,
@@ -488,7 +555,7 @@ class RestaurantDetailPage extends StatelessWidget {
                 backgroundColor: avatarColor,
                 radius: 20,
                 child: Text(
-                  name[0],
+                  name.isNotEmpty ? name[0] : '?',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -500,7 +567,6 @@ class RestaurantDetailPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- 🛠️ เพิ่ม maxLines ป้องกันชื่อยาวล้น ---
                     Text(
                       name,
                       style: const TextStyle(
@@ -529,479 +595,18 @@ class RestaurantDetailPage extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            comment,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[800],
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class MenuCarousel extends StatefulWidget {
-  final List<String> images;
-  const MenuCarousel({super.key, required this.images});
-  @override
-  State<MenuCarousel> createState() => _MenuCarouselState();
-}
-
-class _MenuCarouselState extends State<MenuCarousel> {
-  late PageController _pageController;
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(viewportFraction: 0.85);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 220,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: widget.images.length,
-        itemBuilder: (context, index) {
-          return AnimatedBuilder(
-            animation: _pageController,
-            builder: (context, child) {
-              double value = 1.0;
-              if (_pageController.position.haveDimensions) {
-                value = _pageController.page! - index;
-                value = (1 - (value.abs() * 0.15)).clamp(0.85, 1.0);
-              } else {
-                value = index == 0 ? 1.0 : 0.85;
-              }
-              return Transform.scale(scale: value, child: child);
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 6.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-                image: DecorationImage(
-                  image: NetworkImage(widget.images[index]),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class BookingBottomSheetWidget extends StatefulWidget {
-  final RestaurantModel restaurant;
-  const BookingBottomSheetWidget({super.key, required this.restaurant});
-  @override
-  State<BookingBottomSheetWidget> createState() =>
-      _BookingBottomSheetWidgetState();
-}
-
-class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
-  int _guestCount = 2;
-  DateTime _selectedDate = DateTime.now();
-  String? _selectedTime;
-  bool _isLoading = false;
-
-  List<String> _getAvailableTimeSlots() {
-    List<String> allSlots = [
-      '08:00',
-      '09:00',
-      '10:00',
-      '11:00',
-      '12:00',
-      '13:00',
-      '14:00',
-      '15:00',
-      '16:00',
-      '17:00',
-      '18:00',
-      '19:00',
-      '20:00',
-    ];
-    DateTime now = DateTime.now();
-    bool isToday =
-        _selectedDate.year == now.year &&
-        _selectedDate.month == now.month &&
-        _selectedDate.day == now.day;
-    if (isToday) {
-      return allSlots.where((time) {
-        int hour = int.parse(time.split(':')[0]);
-        return hour > now.hour;
-      }).toList();
-    }
-    return allSlots;
-  }
-
-  Future<void> _pickDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 30)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Theme.of(context).primaryColor,
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-        _selectedTime = null;
-      });
-    }
-  }
-
-  Future<void> _submitBooking() async {
-    setState(() => _isLoading = true);
-    try {
-      String dbDate =
-          "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
-
-      final currentUser = FirebaseAuth.instance.currentUser;
-
-      await FirebaseFirestore.instance.collection('bookings').add({
-        'restaurantId': widget.restaurant.id,
-        'restaurantName': widget.restaurant.name,
-        'date': dbDate,
-        'time': _selectedTime,
-        'guestCount': _guestCount,
-        'status': 'confirmed',
-        'userId': currentUser?.uid ?? 'unknown',
-        'createdAt': FieldValue.serverTimestamp(),
-        'userName':
-            currentUser?.displayName ?? currentUser?.email ?? 'ไม่ระบุชื่อ',
-        'userEmail': currentUser?.email,
-      });
-
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('จองโต๊ะสำเร็จแล้ว!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('เกิดข้อผิดพลาด: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final String displayDate =
-        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year + 543}';
-    final availableTimeSlots = _getAvailableTimeSlots();
-    final String dbSearchDate =
-        "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'รายละเอียดการจอง',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.people,
-                        color: Theme.of(context).primaryColor,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'จำนวนคน',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        if (_guestCount > 1) setState(() => _guestCount--);
-                      },
-                      icon: const Icon(Icons.remove_circle_outline),
-                      color: _guestCount > 1
-                          ? Theme.of(context).primaryColor
-                          : Colors.grey,
-                    ),
-                    SizedBox(
-                      width: 40,
-                      child: Text(
-                        '$_guestCount',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => setState(() => _guestCount++),
-                      icon: const Icon(Icons.add_circle_outline),
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Divider(),
-            ),
-            const Text(
-              'วันที่ต้องการจอง',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
+          if (comment.isNotEmpty) ...[
             const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () => _pickDate(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_month,
-                          color: Theme.of(context).primaryColor,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          displayDate,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      'เปลี่ยน',
-                      style: TextStyle(
-                        color: Theme.of(context).primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'เลือกรอบเวลา',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            availableTimeSlots.isEmpty
-                ? Container(
-                    padding: const EdgeInsets.all(16),
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'ไม่มีรอบเวลาว่างสำหรับวันนี้แล้ว',
-                      style: TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                  )
-                : StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('bookings')
-                        .where('restaurantId', isEqualTo: widget.restaurant.id)
-                        .where('date', isEqualTo: dbSearchDate)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      Map<String, int> bookedSeatsPerSlot = {};
-                      for (var doc in snapshot.data!.docs) {
-                        String time = doc['time'];
-                        int guests = doc['guestCount'] ?? 0;
-                        bookedSeatsPerSlot[time] =
-                            (bookedSeatsPerSlot[time] ?? 0) + guests;
-                      }
-                      return Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: availableTimeSlots.map((time) {
-                          int booked = bookedSeatsPerSlot[time] ?? 0;
-                          int remainingSeats =
-                              widget.restaurant.capacityPerSlot - booked;
-                          bool isNotEnoughSeats = _guestCount > remainingSeats;
-                          bool isSelected = _selectedTime == time;
-                          return ChoiceChip(
-                            label: Column(
-                              children: [
-                                Text(time),
-                                Text(
-                                  remainingSeats > 0
-                                      ? '(ว่าง $remainingSeats)'
-                                      : '(เต็ม)',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: isNotEnoughSeats
-                                        ? Colors.red[300]
-                                        : (isSelected
-                                              ? Colors.white70
-                                              : Colors.green[600]),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            selected: isSelected,
-                            onSelected: isNotEnoughSeats
-                                ? null
-                                : (selected) {
-                                    if (selected) {
-                                      setState(() => _selectedTime = time);
-                                    }
-                                  },
-                            selectedColor: Theme.of(context).primaryColor,
-                            labelStyle: TextStyle(
-                              color: isNotEnoughSeats
-                                  ? Colors.grey
-                                  : (isSelected
-                                        ? Colors.white
-                                        : Colors.black87),
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                            backgroundColor: Colors.grey[100],
-                            disabledColor: Colors.grey[200],
-                            side: BorderSide.none,
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _selectedTime != null
-                      ? Theme.of(context).primaryColor
-                      : Colors.grey[300],
-                  foregroundColor: _selectedTime != null
-                      ? Colors.white
-                      : Colors.grey[600],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                onPressed: (_selectedTime == null || _isLoading)
-                    ? null
-                    : _submitBooking,
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 3,
-                        ),
-                      )
-                    : const Text(
-                        'ยืนยันการจอง',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+            Text(
+              comment,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+                height: 1.5,
               ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }

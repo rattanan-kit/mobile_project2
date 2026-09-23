@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// TODO: อย่าลืมแก้ path import หน้า Login ของคุณให้ถูกต้อง
 import '../pages/login_page.dart';
 
 class AuthService {
@@ -18,7 +17,7 @@ class AuthService {
     return _auth.currentUser != null;
   }
 
-  // ฟังก์ชันพระเอก: ดักเช็กก่อนทำรายการสำคัญ
+  // ดักเช็กก่อนทำรายการสำคัญ
   void requireAuth(BuildContext context, VoidCallback onAuthenticated) {
     if (isLoggedIn) {
       // ถ้าล็อกอินแล้ว ให้ทำคำสั่งที่ส่งเข้ามาได้เลย

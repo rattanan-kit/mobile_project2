@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_project2/pages/Home/deal_page.dart';
 import '../../models/restaurant_model.dart';
-import '../restaurant_detail_page.dart';
+import '../Detail/restaurant_detail_page.dart';
 import 'search_page.dart';
 import '../favorites_page.dart';
 import 'random_restaurant_page.dart';
