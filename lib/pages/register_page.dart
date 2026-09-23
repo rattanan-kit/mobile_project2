@@ -15,8 +15,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _isObscure = true;
   bool _isConfirmObscure = true;
@@ -248,8 +247,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     // ใช้ .trim() ตัดช่องว่างหัวท้ายป้องกันบั๊กเว้นวรรค
                                     final email = _emailController.text.trim();
                                     final password = _passwordController.text;
-                                    final username = _nameController.text
-                                        .trim();
+                                    final username = _nameController.text.trim();
                                     final phone = _phoneController.text.trim();
 
                                     final userCredential = await FirebaseAuth
@@ -275,6 +273,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                               FieldValue.serverTimestamp(),
                                         });
 
+                                    // --- if mounted คือป้องกันว่ากำลังเขียนข้อมูลอยุ่แล้วรอ ป้องกันว่าระหว่างโหลด user ไม่กดย้อนกลับไปก่อน ถ้ากลับไปแล้วจะได้ไม่ต้องโชว์ snackbar ---
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(
                                         context,

@@ -1,3 +1,14 @@
+/**
+ * ไฟล์นี้จัดการข้อมูลผู้ใช้งานและร้านค้าโปรด (User Profile & Favorites System)
+ * โดยจะรวบรวม Business Logic เกี่ยวกับการจัดการโปรไฟล์ผู้ใช้ และการสลับ/เช็กสถานะร้านอาหารโปรดลง Firestore
+ * 
+ * ฟังก์ชันหลักในคลาส UserService (มี 4 ส่วน):
+ * 1. [toggleFavorite] : สลับสถานะร้านโปรด (เพิ่มเข้าหรือลบออกจากรายการ 'favorites' ของผู้ใช้)
+ * 2. [getUserData] : ดึงข้อมูลโปรไฟล์ของผู้ใช้งานปัจจุบัน
+ * 3. [updateProfile] : อัปเดตข้อมูลโปรไฟล์ผู้ใช้ (ชื่อผู้ใช้งานและเบอร์โทรศัพท์)
+ * 4. [isFavoriteStream] : ตรวจสอบและติดตามสถานะร้านโปรดแบบ Real-time (Stream)
+ */
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -25,7 +36,7 @@ class UserService {
         await userDoc.update({
           'favorites': FieldValue.arrayUnion([restaurantId]),
         });
-        print('เพิ่มเป็นร้านโปรดแล้ว 💖');
+        print('เพิ่มเป็นร้านโปรดแล้ว 😍');
       }
     }
   }
