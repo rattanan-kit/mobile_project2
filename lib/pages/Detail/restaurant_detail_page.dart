@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '../models/restaurant_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../models/restaurant_model.dart';
+import '../../services/auth_service.dart';
+import '../../services/user_service.dart';
+import 'widgets/menu_carousel.dart';
+import 'widgets/booking_bottom_sheet.dart';
 
 class RestaurantDetailPage extends StatelessWidget {
   final RestaurantModel restaurant;
@@ -18,18 +23,14 @@ class RestaurantDetailPage extends StatelessWidget {
         : [];
 
     return Scaffold(
-      backgroundColor:
-          Colors.grey[100], // 1. ปรับพื้นหลังฉากหลังเป็นเทาอ่อนลดความขาวโพลน
+      backgroundColor: Colors.grey[100],
       body: CustomScrollView(
         slivers: [
-          // --- 1. รูปหน้าร้านแบบอลังการ ---
           SliverAppBar(
-            expandedHeight: 280.0, // เพิ่มความสูงปกนิดหน่อย
+            expandedHeight: 280.0,
             pinned: true,
-            backgroundColor: const Color.fromARGB(255, 243, 93, 33),
-            iconTheme: const IconThemeData(
-              color: Colors.white,
-            ), // ให้ปุ่ม back เป็นสีขาว
+            backgroundColor: Theme.of(context).primaryColor,
+            iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
@@ -40,7 +41,6 @@ class RestaurantDetailPage extends StatelessWidget {
                           color: Colors.grey[300],
                           child: const Icon(Icons.restaurant, size: 80),
                         ),
-                  // ใส่ Gradient สีดำบางๆ ด้านล่างรูปร้าน เพื่อให้ไอคอนดูชัดขึ้น
                   const DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -58,26 +58,10 @@ class RestaurantDetailPage extends StatelessWidget {
                 ],
               ),
             ),
-            actions: [
-              // ปรับปุ่ม Favorite ให้อยู่ในวงกลมโปร่งแสง จะได้ดูพรีเมียม
-              Container(
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.favorite_border, color: Colors.white),
-                  onPressed: () {},
-                ),
-              ),
-            ],
+            actions: [_FavoriteButton(restaurantId: restaurant.id)],
           ),
-
-          // --- 2. เนื้อหาในหน้าร้าน ---
           SliverToBoxAdapter(
             child: Container(
-              // 2. ทำขอบเนื้อหาโค้งมน ซ้อนทับรูปด้านบนนิดๆ
               transform: Matrix4.translationValues(0.0, -20.0, 0.0),
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -146,7 +130,6 @@ class RestaurantDetailPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-
                         Wrap(
                           spacing: 8,
                           children: restaurant.tags
@@ -156,41 +139,49 @@ class RestaurantDetailPage extends StatelessWidget {
                                     tag.toUpperCase(),
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.blue[700],
+                                      color: Theme.of(context).primaryColor,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  backgroundColor: Colors.blue[50],
-                                  side:
-                                      BorderSide.none, // เอาเส้นขอบออกให้ดูคลีน
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).primaryColor.withOpacity(0.1),
+                                  side: BorderSide.none,
                                   padding: EdgeInsets.zero,
                                 ),
                               )
                               .toList(),
                         ),
                         const SizedBox(height: 24),
-
-                        // --- เพิ่มไอคอนสิ่งอำนวยความสะดวก (Facilities) เพื่อลดความโล่ง ---
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _buildFacilityIcon(
+                              context,
                               Icons.directions_car,
                               'ที่จอดรถ',
                             ),
-                            _buildFacilityIcon(Icons.wifi, 'ฟรี Wi-Fi'),
                             _buildFacilityIcon(
+                              context,
+                              Icons.wifi,
+                              'ฟรี Wi-Fi',
+                            ),
+                            _buildFacilityIcon(
+                              context,
                               Icons.credit_card,
                               'รับบัตรเครดิต',
                             ),
-                            _buildFacilityIcon(Icons.ac_unit, 'ห้องแอร์'),
+                            _buildFacilityIcon(
+                              context,
+                              Icons.ac_unit,
+                              'ห้องแอร์',
+                            ),
                           ],
                         ),
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 20),
                           child: Divider(),
                         ),
-
                         const Text(
                           'เกี่ยวกับร้าน',
                           style: TextStyle(
@@ -212,7 +203,6 @@ class RestaurantDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // --- 3. ส่วนรูปเมนู (Animated Carousel) ---
                   if (menuImages.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
@@ -229,7 +219,6 @@ class RestaurantDetailPage extends StatelessWidget {
                     const SizedBox(height: 30),
                   ],
 
-                  // --- 4. แผนที่และที่อยู่ (OpenStreetMap) ---
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -271,7 +260,7 @@ class RestaurantDetailPage extends StatelessWidget {
                                   TileLayer(
                                     urlTemplate:
                                         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                    userAgentPackageName: 'com.example.app',
+                                    userAgentPackageName: 'com.rattnan.foodbookingapp',
                                   ),
                                   MarkerLayer(
                                     markers: [
@@ -286,7 +275,7 @@ class RestaurantDetailPage extends StatelessWidget {
                                           Icons.location_on,
                                           color: Colors.red,
                                           size: 45,
-                                        ), // หมุดใหญ่ขึ้นนิดนึง
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -325,11 +314,15 @@ class RestaurantDetailPage extends StatelessWidget {
                               size: 22,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              restaurant.phoneNumber,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                restaurant.phoneNumber,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -342,7 +335,9 @@ class RestaurantDetailPage extends StatelessWidget {
                     ),
                   ),
 
-                  // --- 5. ส่วนรีวิวและคอมเมนต์ (ที่อยากทำตอนแรก) ---
+                  // ==========================================
+                  // ส่วนแสดงคอมเมนต์รีวิวจากผู้ใช้จริง (StreamBuilder)
+                  // ==========================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -366,27 +361,84 @@ class RestaurantDetailPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
 
-                        // ตัวอย่างคอมเมนต์จำลอง (Dummy Comment)
-                        _buildCommentItem(
-                          name: 'คุณ สมชาย ใจดี',
-                          time: '2 วันที่แล้ว',
-                          rating: 5,
-                          comment:
-                              'บรรยากาศดีมากครับ อาหารอร่อย พนักงานบริการดีเยี่ยม แนะนำเลยครับ!',
-                          avatarColor: Colors.blue[200]!,
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('reviews')
+                              .where('restaurantId', isEqualTo: restaurant.id)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+
+                            if (!snapshot.hasData ||
+                                snapshot.data!.docs.isEmpty) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 24),
+                                child: Center(
+                                  child: Text(
+                                    'ยังไม่มีรีวิวสำหรับร้านนี้\nมาเป็นคนแรกที่รีวิวสิ!',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            var reviews = snapshot.data!.docs.toList();
+                            reviews.sort((a, b) {
+                              var dateA =
+                                  (a.data()
+                                          as Map<String, dynamic>)['createdAt']
+                                      as Timestamp?;
+                              var dateB =
+                                  (b.data()
+                                          as Map<String, dynamic>)['createdAt']
+                                      as Timestamp?;
+                              if (dateA == null || dateB == null) return 0;
+                              return dateB.compareTo(dateA);
+                            });
+
+                            return ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: reviews.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 16),
+                              itemBuilder: (context, index) {
+                                final reviewData =
+                                    reviews[index].data()
+                                        as Map<String, dynamic>;
+                                final userName =
+                                    reviewData['userName'] ?? 'ผู้ใช้งาน';
+                                final rating = (reviewData['rating'] ?? 5)
+                                    .toInt();
+                                final comment = reviewData['comment'] ?? '';
+
+                                final colors = [
+                                  Colors.blue[200]!,
+                                  Colors.pink[200]!,
+                                  Colors.orange[200]!,
+                                  Colors.green[200]!,
+                                ];
+                                final avatarColor =
+                                    colors[index % colors.length];
+
+                                return _buildCommentItem(
+                                  name: userName,
+                                  time: 'รีวิวใหม่',
+                                  rating: rating,
+                                  comment: comment,
+                                  avatarColor: avatarColor,
+                                );
+                              },
+                            );
+                          },
                         ),
-                        const SizedBox(height: 16),
-                        _buildCommentItem(
-                          name: 'แพรวา รักกิน',
-                          time: '1 สัปดาห์ที่แล้ว',
-                          rating: 4,
-                          comment:
-                              'สเต็กเนื้อนุ่มมาก แต่แอบหาที่จอดรถยากนิดนึงช่วงเย็น โดยรวมประทับใจค่ะ',
-                          avatarColor: Colors.pink[200]!,
-                        ),
-                        const SizedBox(
-                          height: 40,
-                        ), // ระยะห่างก่อนถึงปุ่มจองด้านล่าง
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
@@ -396,8 +448,6 @@ class RestaurantDetailPage extends StatelessWidget {
           ),
         ],
       ),
-
-      // --- ปุ่มจองโต๊ะปรับดีไซน์นิดหน่อยให้ดูเด่นขึ้น ---
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -421,14 +471,20 @@ class RestaurantDetailPage extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                backgroundColor: Colors.blue,
+                backgroundColor: Theme.of(context).primaryColor,
                 foregroundColor: Colors.white,
                 elevation: 0,
               ),
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('กำลังเปิดหน้าต่างจองโต๊ะ...')),
-                );
+                AuthService().requireAuth(context, () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) =>
+                        BookingBottomSheetWidget(restaurant: restaurant),
+                  );
+                });
               },
               child: const Text(
                 'จองโต๊ะเลย',
@@ -441,8 +497,7 @@ class RestaurantDetailPage extends StatelessWidget {
     );
   }
 
-  // Widget ช่วยสร้างไอคอนสิ่งอำนวยความสะดวก
-  Widget _buildFacilityIcon(IconData icon, String label) {
+  Widget _buildFacilityIcon(BuildContext context, IconData icon, String label) {
     return Column(
       children: [
         Container(
@@ -451,7 +506,7 @@ class RestaurantDetailPage extends StatelessWidget {
             color: Colors.grey[100],
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: Colors.blue[700], size: 24),
+          child: Icon(icon, color: Theme.of(context).primaryColor, size: 24),
         ),
         const SizedBox(height: 8),
         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
@@ -459,7 +514,6 @@ class RestaurantDetailPage extends StatelessWidget {
     );
   }
 
-  // Widget ช่วยสร้างรายการคอมเมนต์
   Widget _buildCommentItem({
     required String name,
     required String time,
@@ -470,7 +524,7 @@ class RestaurantDetailPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50], // พื้นหลังกล่องคอมเมนต์สีเทาอ่อนๆ
+        color: Colors.grey[50],
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey[200]!),
       ),
@@ -483,7 +537,7 @@ class RestaurantDetailPage extends StatelessWidget {
                 backgroundColor: avatarColor,
                 radius: 20,
                 child: Text(
-                  name[0],
+                  name.isNotEmpty ? name[0] : '?',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -501,6 +555,8 @@ class RestaurantDetailPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       time,
@@ -510,92 +566,62 @@ class RestaurantDetailPage extends StatelessWidget {
                 ),
               ),
               Row(
-                children: List.generate(5, (index) {
-                  return Icon(
+                children: List.generate(
+                  5,
+                  (index) => Icon(
                     index < rating ? Icons.star : Icons.star_border,
                     color: Colors.amber,
                     size: 16,
-                  );
-                }),
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            comment,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[800],
-              height: 1.5,
+          if (comment.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              comment,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+                height: 1.5,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 }
 
-// Widget MenuCarousel คงเดิมเป๊ะๆ ครับ
-class MenuCarousel extends StatefulWidget {
-  final List<String> images;
-  const MenuCarousel({super.key, required this.images});
+class _FavoriteButton extends StatelessWidget {
+  final String restaurantId;
 
-  @override
-  State<MenuCarousel> createState() => _MenuCarouselState();
-}
-
-class _MenuCarouselState extends State<MenuCarousel> {
-  late PageController _pageController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(viewportFraction: 0.85);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
+  const _FavoriteButton({super.key, required this.restaurantId});
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 220,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: widget.images.length,
-        itemBuilder: (context, index) {
-          return AnimatedBuilder(
-            animation: _pageController,
-            builder: (context, child) {
-              double value = 1.0;
-              if (_pageController.position.haveDimensions) {
-                value = _pageController.page! - index;
-                value = (1 - (value.abs() * 0.15)).clamp(0.85, 1.0);
-              } else {
-                value = index == 0 ? 1.0 : 0.85;
-              }
-              return Transform.scale(scale: value, child: child);
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 6.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-                image: DecorationImage(
-                  image: NetworkImage(widget.images[index]),
-                  fit: BoxFit.cover,
-                ),
-              ),
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.3),
+        shape: BoxShape.circle,
+      ),
+      child: StreamBuilder<bool>(
+        stream: UserService().isFavoriteStream(restaurantId),
+        builder: (context, snapshot) {
+          final isFavorite = snapshot.data ?? false;
+
+          return IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: isFavorite ? Colors.red : Colors.white,
             ),
+            onPressed: () {
+              AuthService().requireAuth(context, () {
+                UserService().toggleFavorite(restaurantId);
+              });
+            },
           );
         },
       ),

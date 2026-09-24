@@ -1,25 +1,79 @@
+/**
+ * และการตรวจสอบสิทธิ์การเข้าถึง โดยทำงานร่วมกับ Firebase Auth และ Cloud Firestore
+ * 
+ * 1. [isLoggedIn] (Getter) : ตรวจสอบสถานะว่ามีผู้ใช้งานล็อกอินอยู่หรือไม่ คืนค่าเป็น true/false
+ * 2. [requireAuth] : ตัวคุมสิทธิ์ (Auth Guard) ใช้ครอบฟีเจอร์สำคัญ ถ้ายังไม่ล็อกอินจะแจ้งเตือนและพาไปหน้า Login
+ * 3. [register] : สมัครสมาชิกใหม่ด้วย Email/Password พร้อมสร้าง Document เก็บประวัติในคอลเลกชัน 'users'
+ * 4. [login] : ตรวจสอบและเข้าสู่ระบบด้วย Email/Password
+ * 5. [logout] : ออกจากระบบ (Sign out) เคลียร์เซสชันของผู้ใช้ปัจจุบัน
+ */
+
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../pages/login_page.dart';
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance; // เพิ่มตัวเรียก Firestore
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // อัปเกรดฟังก์ชันสมัครสมาชิก รับค่า username และ phone เพิ่ม
-  Future<User?> register(String email, String password, String username, String phone) async {
+  // ==========================================
+  // 1. ตัวช่วยตรวจสอบสถานะ (Auth Guard)
+  // ==========================================
+
+  // เช็กว่ามี User ล็อกอินอยู่หรือไม่
+  bool get isLoggedIn {
+    return _auth.currentUser != null;
+  }
+
+  // ดักเช็กก่อนทำรายการสำคัญ
+  void requireAuth(BuildContext context, VoidCallback onAuthenticated) {
+    if (isLoggedIn) {
+      // ถ้าล็อกอินแล้ว ให้ทำคำสั่งที่ส่งเข้ามาได้เลย
+      onAuthenticated();
+    } else {
+      // ถ้ายังไม่ล็อกอิน ให้โชว์เตือนและพาไปหน้า Login
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('กรุณาล็อกอินเพื่อใช้งานฟีเจอร์นี้'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    }
+  }
+
+  // ==========================================
+  // 2. ระบบจัดการบัญชี (Register, Login, Logout)
+  // ==========================================
+
+  // ฟังก์ชันสมัครสมาชิก
+  Future<User?> register(
+    String email,
+    String password,
+    String username,
+    String phone,
+  ) async {
     try {
-      // 1. สร้างบัญชีใน Firebase Auth
-      UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       User? user = result.user;
 
       if (user != null) {
-        // 2. ถ้าสมัครผ่าน ให้เอาข้อมูลมาบันทึกลง Collection 'users'
         await _db.collection('users').doc(user.uid).set({
           'uid': user.uid,
           'email': email,
           'username': username,
           'phone': phone,
-          'favorites': [], // เตรียม Array ว่างๆ ไว้เก็บร้านโปรด!
+          'favorites': [],
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
@@ -30,8 +84,7 @@ class AuthService {
     }
   }
 
-  // (ฟังก์ชัน login กับ logout ใช้โค้ดเดิมได้เลยครับ)
-    // ฟังก์ชันล็อกอิน
+  // ฟังก์ชันล็อกอิน
   Future<User?> login(String email, String password) async {
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
@@ -44,36 +97,9 @@ class AuthService {
       return null;
     }
   }
-  
-   // ฟังก์ชันออกจากระบบ
+
+  // ฟังก์ชันออกจากระบบ
   Future<void> logout() async {
     await _auth.signOut();
-  }
-
-  // ฟังก์ชันสลับสถานะร้านโปรด (กดใจ / เอาใจออก)
-  Future<void> toggleFavorite(String restaurantId) async {
-    String? uid = _auth.currentUser?.uid;
-    if (uid == null) return; // ถ้าไม่ได้ล็อกอิน ไม่ต้องทำอะไร
-
-    DocumentReference userDoc = _db.collection('users').doc(uid);
-    DocumentSnapshot docSnap = await userDoc.get();
-
-    if (docSnap.exists) {
-      List<dynamic> favorites = docSnap['favorites'] ?? [];
-
-      if (favorites.contains(restaurantId)) {
-        // ถ้ามีร้านนี้อยู่แล้ว แปลว่ากดซ้ำ = เอาหัวใจออก
-        await userDoc.update({
-          'favorites': FieldValue.arrayRemove([restaurantId]),
-        });
-        print('ลบออกจากร้านโปรดแล้ว');
-      } else {
-        // ถ้ายังไม่มี = เพิ่มเข้าโหมดร้านโปรด
-        await userDoc.update({
-          'favorites': FieldValue.arrayUnion([restaurantId]),
-        });
-        print('เพิ่มเป็นร้านโปรดแล้ว 💖');
-      }
-    }
   }
 }

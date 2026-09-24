@@ -1,3 +1,19 @@
+/**
+ * ไฟล์นี้ทำหน้าที่เป็น Booking System
+ * รวม Business Logic และการตรวจสอบเงื่อนไขต่างๆ ก่อนบันทึกข้อมูลลง Firestore
+ * 
+ * ฟังก์ชันหลักในคลาส BookingService (มี 3 ส่วน):
+ * 1. [createBooking] : สร้างการจองใหม่ โดยมีระบบ Validation ตรวจสอบ 4 ด่าน:
+ *    - จำนวนคนต้องมากกว่า 0
+ *    - เวลาจองต้องไม่เป็นอดีต
+ *    - ผู้ใช้ต้องไม่มีคิวจองซ้ำในเวลาเดียวกัน
+ *    - คำนวณที่นั่งว่าง (โควตาร้าน - ยอดจองปัจจุบัน) ต้องเพียงพอ
+ *    (หากผ่าน จะไปดึงข้อมูลโปรไฟล์มาฝังในบิล และเซฟลงคอลเลกชัน 'bookings')
+ * 
+ * 2. [getUserBookings] : ดึงประวัติการจองทั้งหมดของ User นั้นๆ (ใช้แสดงในหน้า My Bookings)
+ * 3. [cancelBooking] : อัปเดตสถานะการจอง (status) เป็น 'cancelled' (ยกเลิก)
+ */
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BookingService {
@@ -11,7 +27,6 @@ class BookingService {
     required int partySize,
   }) async {
     try {
-
       // --- ด่านที่ 1: ป้องกันจำนวนคนผิดปกติ ---
       if (partySize <= 0) {
         print('❌ จองไม่ได้! จำนวนคนต้องมากกว่า 0');
@@ -31,7 +46,7 @@ class BookingService {
           .collection('bookings')
           .where('userId', isEqualTo: userId)
           .where('date', isEqualTo: date)
-          .where('timeSlot', isEqualTo: timeSlot)
+          .where('time', isEqualTo: timeSlot) // อิงชื่อ Field 'time'
           .where('status', isEqualTo: 'confirmed')
           .get();
 
@@ -57,13 +72,14 @@ class BookingService {
           .collection('bookings')
           .where('restaurantId', isEqualTo: restaurantId)
           .where('date', isEqualTo: date)
-          .where('timeSlot', isEqualTo: timeSlot)
+          .where('time', isEqualTo: timeSlot) // อิงชื่อ Field 'time'
           .where('status', isEqualTo: 'confirmed')
           .get();
 
       int currentBookedSeats = 0;
       for (var doc in restaurantBookings.docs) {
-        currentBookedSeats += (doc['partySize'] as num).toInt();
+        // อิงชื่อ Field 'guestCount'
+        currentBookedSeats += (doc['guestCount'] as num).toInt();
       }
 
       // 4.3 เช็กว่าที่นั่งเหลือพอไหม
@@ -74,7 +90,6 @@ class BookingService {
       }
 
       // --- ด่านที่ 5: ดึงข้อมูลโปรไฟล์ลูกค้า (เพื่อฝังชื่อและเบอร์ลงในบิล) ---
-      // วางไว้ตรงนี้เพื่อประหยัดโควตาอ่าน DB ถ้าด่านก่อนหน้าไม่ผ่านจะได้ไม่ดึงฟรี
       DocumentSnapshot userProfile = await _db
           .collection('users')
           .doc(userId)
@@ -90,12 +105,15 @@ class BookingService {
       // --- ผ่านหมดทุกด่าน: บันทึกลง Database พร้อมชื่อและเบอร์ ---
       await _db.collection('bookings').add({
         'restaurantId': restaurantId,
+        'restaurantName':
+            restaurantDoc['name'] ??
+            'ไม่ระบุชื่อร้าน', // เติมไว้เผื่อ UI ต้องแสดงชื่อร้าน
         'userId': userId,
-        'customerName': customerName, 
-        'customerPhone': customerPhone, 
+        'customerName': customerName,
+        'customerPhone': customerPhone,
         'date': date,
-        'timeSlot': timeSlot,
-        'partySize': partySize,
+        'time': timeSlot, // บันทึกเป็น time
+        'guestCount': partySize, // บันทึกเป็น guestCount
         'status': 'confirmed',
         'createdAt': FieldValue.serverTimestamp(),
       });
