@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_project2/pages/Home/deal_page.dart';
 import '../../models/restaurant_model.dart';
@@ -85,16 +86,59 @@ class HomePage extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'สวัสดี คุณ',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+
+                      //: ดึงชื่อผู้ใช้แบบ Real-time
+                      StreamBuilder<User?>(
+                        stream: FirebaseAuth.instance.authStateChanges(),
+                        builder: (context, authSnapshot) {
+                          final user = authSnapshot.data;
+
+                          // กรณีที่ 1: ยังไม่ได้ล็อกอิน
+                          if (user == null) {
+                            return const Text(
+                              'สวัสดี ผู้เยี่ยมชม',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            );
+                          }
+
+                          // กรณีที่ 2: ล็อกอินแล้ว -> ดึง username จาก collection 'users'
+                          return StreamBuilder<DocumentSnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(user.uid)
+                                .snapshots(),
+                            builder: (context, userSnapshot) {
+                              String displayName = 'คุณ';
+
+                              if (userSnapshot.hasData &&
+                                  userSnapshot.data!.exists) {
+                                final userData =
+                                    userSnapshot.data!.data()
+                                        as Map<String, dynamic>?;
+                                displayName = userData?['username'] ?? 'คุณ';
+                              }
+
+                              return Text(
+                                'สวัสดี คุณ $displayName',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              );
+                            },
+                          );
+                        },
                       ),
+
                       const SizedBox(height: 4),
                       const Text(
                         'เลือกร้านที่ใช่ จองโต๊ะที่ชอบ',
@@ -258,7 +302,7 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 24),
 
             // ==========================================
-            // 3. หมวดหมู่ร้านอาหาร (แก้ไขให้กดไปหน้า Search ได้)
+            // 3. หมวดหมู่ร้านอาหาร
             // ==========================================
             SizedBox(
               height: 110,
@@ -333,7 +377,6 @@ class HomePage extends StatelessWidget {
             SizedBox(
               height: 210,
               child: StreamBuilder<QuerySnapshot>(
-                // ดึง 5 ร้านที่คะแนนสูงสุดมาโชว์
                 stream: FirebaseFirestore.instance
                     .collection('restaurants')
                     .orderBy('rating', descending: true)
@@ -363,7 +406,7 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 32),
 
             // ==========================================
-            // 5. ร้านยอดนิยม (UI ดีไซน์ใหม่)
+            // 5. ร้านยอดนิยม 
             // ==========================================
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -463,7 +506,6 @@ class HomePage extends StatelessWidget {
   ) {
     return GestureDetector(
       onTap: () {
-        // เมื่อกดหมวดหมู่ ให้ส่งคำค้นหาไปหน้า SearchPage
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -501,7 +543,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // 🛠️ อัปเดต: การ์ดแนะนำดึงข้อมูลจาก DB แล้วประกอบร่างเป็น Model เพื่อให้กดดู Detail ได้
   Widget _buildRecommendedCard(
     BuildContext context,
     String id,
@@ -615,7 +656,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // 🛠️ อัปเดต: การ์ดร้านยอดนิยม ดีไซน์ใหม่ ใหญ่และสวยขึ้น
   Widget _buildModernRestaurantCard(
     BuildContext context,
     String id,
@@ -677,7 +717,6 @@ class HomePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // รูปภาพด้านบนเต็มความกว้าง
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
@@ -732,7 +771,6 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-              // ข้อมูลด้านล่าง
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
