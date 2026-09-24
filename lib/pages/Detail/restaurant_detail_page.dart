@@ -1,7 +1,22 @@
+/**
+==============================================================================
+หน้าที่: แสดงรายละเอียดของร้านอาหารที่ถูกส่งต่อมาจากหน้า Home
+
+จุดเด่นและสถาปัตยกรรมสำคัญในหน้านี้:
+1. UI Parallax Effect: ใช้ CustomScrollView + SliverAppBar รูปปกยืดหดได้
+2. Deep Linking (url_launcher): เปิดลิงก์ Facebook, IG, LINE เด้งเข้าแอปจริง
+3. Map Rendering: ปักหมุดแผนที่ OpenStreetMap 
+4. Real-time Reviews: ใช้ StreamBuilder ฟังการเปลี่ยนแปลงคอมเมนต์รีวิวจาก Firestore
+5. Route Protection: บังคับผ่าน AuthService เช็กล็อกอินก่อนเปิดหน้าต่างจองโต๊ะ
+==============================================================================
+ */
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart'; 
+
 import '../../models/restaurant_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
@@ -13,12 +28,43 @@ class RestaurantDetailPage extends StatelessWidget {
 
   const RestaurantDetailPage({super.key, required this.restaurant});
 
+  // ฟังก์ชันสำหรับเปิด URL
+  Future<void> _launchSocialUrl(BuildContext context, String urlString) async {
+    if (urlString.isEmpty) return;
+
+    // ตรวจสอบและเติม https:// หากผู้ใช้กรอกมาแค่ชื่อเว็บ
+    String formattedUrl = urlString;
+    if (!formattedUrl.startsWith('http://') &&
+        !formattedUrl.startsWith('https://')) {
+      formattedUrl = 'https://$formattedUrl';
+    }
+
+    final Uri url = Uri.parse(formattedUrl);
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ไม่สามารถเปิดลิงก์ได้')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('เกิดข้อผิดพลาด: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final String storefrontImage = restaurant.images.isNotEmpty
+    final String storefrontImage = restaurant.images.isNotEmpty // รูปปก
         ? restaurant.images[0]
         : '';
-    final List<String> menuImages = restaurant.images.length > 1
+    final List<String> menuImages = restaurant.images.length > 1 // รูปที่เหลือยกเว้นรูปแรก
         ? restaurant.images.skip(1).toList()
         : [];
 
@@ -260,7 +306,8 @@ class RestaurantDetailPage extends StatelessWidget {
                                   TileLayer(
                                     urlTemplate:
                                         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                    userAgentPackageName: 'com.rattnan.foodbookingapp',
+                                    userAgentPackageName:
+                                        'com.rattnan.foodbookingapp',
                                   ),
                                   MarkerLayer(
                                     markers: [
@@ -327,6 +374,39 @@ class RestaurantDetailPage extends StatelessWidget {
                             ),
                           ],
                         ),
+
+                        // ==========================================
+                        // ส่วนแสดง Social Links (ดึงจาก restaurant.socialLinks)
+                        // ==========================================
+                        if (restaurant.socialLinks.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          const Text(
+                            'ช่องทางการติดต่อออนไลน์',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 8,
+                            children: restaurant.socialLinks.entries.map((
+                              entry,
+                            ) {
+                              final platform = entry.key.toLowerCase();
+                              final link = entry.value.toString();
+
+                              return _buildSocialButton(
+                                context,
+                                platform: platform,
+                                url: link,
+                              );
+                            }).toList(),
+                          ),
+                        ],
+
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 24),
                           child: Divider(),
@@ -494,6 +574,51 @@ class RestaurantDetailPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  // Helper สร้างปุ่ม Social Media แต่ละแพลตฟอร์ม
+  Widget _buildSocialButton(
+    BuildContext context, {
+    required String platform,
+    required String url,
+  }) {
+    IconData iconData = Icons.language;
+    Color buttonColor = Colors.blueGrey;
+    String label = platform.toUpperCase();
+
+    if (platform.contains('facebook')) {
+      iconData = Icons.facebook;
+      buttonColor = const Color(0xFF1877F2);
+      label = 'Facebook';
+    } else if (platform.contains('instagram') || platform.contains('ig')) {
+      iconData = Icons.camera_alt;
+      buttonColor = const Color(0xFFE4405F);
+      label = 'Instagram';
+    } else if (platform.contains('line')) {
+      iconData = Icons.chat;
+      buttonColor = const Color(0xFF06C755);
+      label = 'LINE';
+    } else if (platform.contains('website') || platform.contains('web')) {
+      iconData = Icons.public;
+      buttonColor = Colors.teal;
+      label = 'Website';
+    }
+
+    return ActionChip(
+      avatar: Icon(iconData, size: 18, color: Colors.white),
+      label: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor: buttonColor,
+      side: BorderSide.none,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      onPressed: () => _launchSocialUrl(context, url),
     );
   }
 
