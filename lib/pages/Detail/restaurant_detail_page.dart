@@ -29,32 +29,38 @@ class RestaurantDetailPage extends StatelessWidget {
   const RestaurantDetailPage({super.key, required this.restaurant});
 
   // ฟังก์ชันสำหรับเปิด URL
-  Future<void> _launchSocialUrl(BuildContext context, String urlString) async {
-    if (urlString.isEmpty) return;
+Future<void> _launchSocialUrl(BuildContext context, String urlString) async {
+    if (urlString.trim().isEmpty) return;
 
-    // ตรวจสอบและเติม https:// หากผู้ใช้กรอกมาแค่ชื่อเว็บ
-    String formattedUrl = urlString;
+    String formattedUrl = urlString.trim();
     if (!formattedUrl.startsWith('http://') &&
         !formattedUrl.startsWith('https://')) {
       formattedUrl = 'https://$formattedUrl';
     }
 
     final Uri url = Uri.parse(formattedUrl);
+
     try {
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
+      // ลองเปิดแบบเด้งข้ามแอปก่อน
+      bool launched = await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
+
+      // ถ้าเปิดแอปตรงไม่ติด ให้เปิดผ่านเบราว์เซอร์ในเครื่องแทน
+      if (!launched) {
+        await launchUrl(url, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      // กรณีที่ canLaunchUrl หรือ launchUrl มีปัญหา ให้ลองโหมดเปิดเว็บทั่วไปอีกรอบ
+      try {
+        await launchUrl(url, mode: LaunchMode.inAppBrowserView);
+      } catch (_) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('ไม่สามารถเปิดลิงก์ได้')),
           );
         }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('เกิดข้อผิดพลาด: $e')));
       }
     }
   }

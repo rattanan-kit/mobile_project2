@@ -32,19 +32,32 @@
             android:value="2" />
             
         <!-- ============================================== -->
-        <!-- เพิ่ม Google Maps API Key ตรงนี้ครับ -->
+        <!-- Google Maps API Key -->
+        <!-- ============================================== -->
         <meta-data 
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBB1uMvd8EA2Wb_rBqWHFx1K6qqb7J5d7A" />
-        <!-- ============================================== -->
             
     </application>
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
 
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+    <!-- กำหนดสิทธิ์ให้แอปสามารถสั่งเปิดเบราว์เซอร์ และแอปภายนอกได้ -->
     <queries>
+        <!-- อนุญาตให้เปิดลิงก์เว็บไซต์ HTTPS (Facebook, IG, Line, Web) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <!-- อนุญาตให้เปิดลิงก์เว็บไซต์ HTTP -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+        <!-- อนุญาตให้เปิดหน้าระบบโทรศัพท์เมื่อกดเบอร์โทร -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="tel" />
+        </intent>
+        <!-- ค่าดั้งเดิมของระบบ Flutter สำหรับประมวลผลข้อความ -->
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
