@@ -44,7 +44,6 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
     if (isToday) {
       return allSlots.where((time) {
         int hour = int.parse(time.split(':')[0]);
-        // เช็กเวลาจากเครื่อง ถ้าเวลาผ่านไปแล้ว จะไม่คืนค่ารอบเวลานั้น
         return hour > now.hour;
       }).toList();
     }
@@ -87,7 +86,6 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
           "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
       final currentUser = FirebaseAuth.instance.currentUser;
 
-      // เรียกใช้งาน BookingService
       bool isSuccess = await BookingService().createBooking(
         restaurantId: widget.restaurant.id,
         userId: currentUser?.uid ?? 'unknown',
@@ -306,23 +304,20 @@ class _BookingBottomSheetWidgetState extends State<BookingBottomSheetWidget> {
                       Map<String, int> bookedSeatsPerSlot = {};
 
                       for (var doc in snapshot.data!.docs) {
-                        // แปลงข้อมูลให้เป็น Map เพื่อง่ายต่อการดึงและเช็ก field
                         Map<String, dynamic> data =
                             doc.data() as Map<String, dynamic>;
 
-                        // 1. ดึงสถานะ
                         String status = data.containsKey('status')
                             ? data['status']
                             : '';
 
-                        // 2. ถ้ายกเลิกคิวไปแล้ว (cancelled) ให้ข้ามไป ไม่ต้องบวกยอดคนเพิ่ม
-                        if (status == 'cancelled') {
+                        // ✅ นับเฉพาะ 'confirmed' เท่านั้น
+                        if (status != 'confirmed') {
                           continue;
                         }
 
-                        // 3. ถ้าเป็นสถานะอื่น (เช่น confirmed, completed) ถึงจะนับจำนวน
                         String time = data['time'] ?? '';
-                        int guests = data['guestCount'] ?? 0;
+                        int guests = (data['guestCount'] as num? ?? 0).toInt();
                         if (time.isNotEmpty) {
                           bookedSeatsPerSlot[time] =
                               (bookedSeatsPerSlot[time] ?? 0) + guests;

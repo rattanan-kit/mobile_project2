@@ -260,7 +260,7 @@ class RestaurantDetailPage extends StatelessWidget {
                                   TileLayer(
                                     urlTemplate:
                                         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                    userAgentPackageName: 'com.example.app',
+                                    userAgentPackageName: 'com.rattnan.foodbookingapp',
                                   ),
                                   MarkerLayer(
                                     markers: [
